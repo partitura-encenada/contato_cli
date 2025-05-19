@@ -1,0 +1,21 @@
+{
+    "midiout_port" : 1,
+    "legato" : false,
+    "hand" : -1,
+    "angle_notes_list": [
+        [-137, [["C5", 5]]],
+        [-91, [["F#5", 5]]],
+        [-46, [["D#5", 5]]],
+        [-1, [["A5", 5]]],
+        [44, [["C5", 5]]],
+        [90, [["F#5", 5]]],
+        [136, [["D#5", 5]]],
+        [180, [["A5", 5]]]
+    ],  
+    "accel_notes":[["F#", 2]],
+    "accel_delay": 2,                      
+    "accel_sensitivity_+": 8000,  
+    "accel_sensitivity_-": 8000,
+    "pitch_bend": false
+}
+

@@ -1,0 +1,15 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "contato_cli"
+version = "0.0.1"
+dependencies = [
+  "click",
+  "python-rtmidi",
+  "bleak"
+]
+
+[project.scripts]
+contato = "contato_cli.__main__:cli"

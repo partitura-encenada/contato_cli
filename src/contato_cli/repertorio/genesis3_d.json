@@ -1,0 +1,20 @@
+{
+    "midiout_port" : 6,
+    "legato" : false,
+    "hand" : 1,
+    "angle_notes_list": [
+        [-137, [["E", 3]]],
+        [-91, [["A", 4]]],
+        [-46, [["E", 4]]],
+        [-1, [["A", 4]]],
+        [44, [["C", 4]]],
+        [90, [["E", 3]]],
+        [136, [["E", 4]]],
+        [180, [["A", 4]]]
+    ],  
+    "accel_notes":[["A", 2]],
+    "accel_delay": 2,                      
+    "accel_sensitivity_+": 8000,  
+    "accel_sensitivity_-": 8000,
+    "pitch_bend": false
+}
