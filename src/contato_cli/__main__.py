@@ -49,9 +49,7 @@ def connect(performance, mac, dispositivo) -> None:
         config = json.load(jsonfile)
     player.config = config
     print('Scan')
-    loop = asyncio.new_event_loop()
-    loop.create_task(async_connect(mac, dispositivo))
-    loop.run_forever()
+    asyncio.run(async_connect(mac, dispositivo))
 async def async_connect(mac, dispositivo) -> None:
     if mac:
         device = await BleakScanner.find_device_by_mac(mac)
@@ -70,7 +68,11 @@ async def async_connect(mac, dispositivo) -> None:
         while True:
             await client.start_notify(GYRO_CHARACTERISTIC_UUID, gyro_notification_handler)
             await client.start_notify(TOUCH_CHARACTERISTIC_UUID, touch_notification_handler) 
-            await client.start_notify(ACCEL_CHARACTERISTIC_UUID, accel_notification_handler) 
+            await client.start_notify(ACCEL_CHARACTERISTIC_UUID, accel_notification_handler)
+            await asyncio.sleep(3600) # COMO QUE RODA INFINITO
+            await client.stop_notify(GYRO_CHARACTERISTIC_UUID)
+            await client.stop_notify(TOUCH_CHARACTERISTIC_UUID)
+            await client.stop_notify(ACCEL_CHARACTERISTIC_UUID) 
 
 if __name__ == "__main__":
     cli()
