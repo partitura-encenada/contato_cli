@@ -1,8 +1,9 @@
 import rtmidi
-from bleak.backends.characteristic import BleakGATTCharacteristic
+import time
+
 class Player:
-    def __init__(self, config):
-        self.config = config
+    def __init__(self):
+        self.config = None
         self.gyro_midiout = rtmidi.MidiOut().open_port(1)
         self.accel_midiout = rtmidi.MidiOut().open_port(2)
 
@@ -57,13 +58,13 @@ class Player:
                                         100])        
         print(f'Parando {note_codes_list}')  
 
-    def set_gyro(self, characteristic: BleakGATTCharacteristic, data: bytearray) -> None:
-        self.gyro = int.from_bytes(data, 'little', signed=True)
+    def set_gyro(self, gyro) -> None:
+        self.gyro = gyro
 
-    def set_touch(self, characteristic: BleakGATTCharacteristic, data: bytearray) -> None:
+    def set_touch(self, touch) -> None:
         if(not self.set_gyro):
             return
-        self.touch = int.from_bytes(data, 'little', signed=True)
+        self.touch = touch
 
         # Notas atuais
         current_notes = []
@@ -81,7 +82,7 @@ class Player:
                 print('Início do toque')
                 if self.config.get('legato'):
                     self.stop_notes('gyro', self.last_gyro_notes_list)
-                if touch == 2:
+                if self.touch == 2:
                     self.pianissimo_flag = True
                 else:
                     self.pianissimo_flag = False
@@ -101,11 +102,11 @@ class Player:
                     self.stop_notes('gyro', self.last_gyro_notes_list)
                 self.touch_flag = False
 
-    def set_accel(self, characteristic: BleakGATTCharacteristic, data: bytearray) -> None:
-        self.accel = int.from_bytes(data, 'little', signed=False)
+    def set_accel(self, accel) -> None:
+        self.accel = accel
 
         if time.time() - self.last_accel_trigger_time > self.config.get('accel_delay'):
-            if abs(self.accel) > self.config.get('accel_sensitivity_+') or abs(accel) > self.config.get('accel_sensitivity_-'):
+            if abs(self.accel) > self.config.get('accel_sensitivity_+') or abs(self.accel) > self.config.get('accel_sensitivity_-'):
                 if self.config.get('legato'): # Caso legato esteja ativado, a funcionalidade será interromper última nota
                     self.stop_notes('accel', self.convert_to_midi_codes(self.config.get('accel_notes')))     
                 self.play_notes('accel', self.convert_to_midi_codes(self.config.get('accel_notes')))
