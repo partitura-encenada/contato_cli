@@ -28,7 +28,7 @@ def cli() -> None:
 @click.argument('texto', default = 'Default')
 def teste(texto):
     print('Texto: ' + texto)
-     
+    print(os.path.dirname(os.path.abspath(__file__)))
 @cli.command()
 def scan():
     asyncio.run(async_scan()) 
@@ -37,7 +37,7 @@ async def async_scan() -> None:
     devices = await BleakScanner.discover()
     for d in devices:
         print(d)
-
+        
 @cli.command()
 @click.argument('performance')
 #TODO: Tornar opções mutualmente exclusivas

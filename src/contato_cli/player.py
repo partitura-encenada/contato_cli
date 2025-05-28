@@ -29,33 +29,36 @@ class Player:
             match device:
                 case 'gyro':
                     if self.pianissimo_flag:
-                        print('pianissimo')
                         self.gyro_midiout.send_message([143 + self.config.get('midiout_port'), 
                                                 note_code, # 36
-                                                32])
+                                                127])
+                        print(f'On: {note_codes_list}\tpianissimo')
                     else:
                         self.gyro_midiout.send_message([143 + self.config.get('midiout_port'), 
                                     note_code, # 36
                                     127])
+                        print(f'Gyro on: {note_codes_list}')
                     self.last_gyro_notes_list = note_codes_list
                 case 'accel':
                     self.accel_midiout.send_message([143 + self.config.get('midiout_port'), 
                                     note_code, # 36
                                     100])
-        print(f'Tocando {note_codes_list}')
+                    print(f'Accel on: {note_codes_list}')
     
     def stop_notes(self, device, note_codes_list) -> None:
-        for note_code in note_codes_list: # [36, 40, 43]
+        for note_code in note_codes_list: # [36, 40, 43]    
             match device:
                 case 'gyro':
                     self.gyro_midiout.send_message([127 + self.config.get('midiout_port'), 
                                         note_code, # 36
                                         100])
                     self.last_gyro_notes_list = note_codes_list
+                    print(f'Gyro off: {note_codes_list}')
                 case 'accel':
                     self.accel_midiout.send_message([127 + self.config.get('midiout_port'), 
                                         note_code, # 36
-                                        100])        
+                                        100])     
+                    print('Accel off')   
         print(f'Parando {note_codes_list}')  
 
     def set_gyro(self, gyro) -> None:
@@ -79,7 +82,6 @@ class Player:
         if self.touch: 
             # Início do toque
             if not self.touch_flag:
-                print('Início do toque')
                 if self.config.get('legato'):
                     self.stop_notes('gyro', self.last_gyro_notes_list)
                 if self.touch == 2:
@@ -91,13 +93,11 @@ class Player:
     
             # Decorrer do toque
             if current_notes != self.last_gyro_notes_list:
-                print('Trocando de nota')
                 self.stop_notes('gyro', self.last_gyro_notes_list)
                 self.play_notes('gyro', current_notes)
         else:
             # Liberação do toque
             if self.touch_flag:
-                print('Liberando toque')
                 if not self.config.get('legato'): 
                     self.stop_notes('gyro', self.last_gyro_notes_list)
                 self.touch_flag = False
