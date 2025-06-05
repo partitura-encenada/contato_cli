@@ -8,7 +8,10 @@ version = "0.0.1"
 dependencies = [
   "click",
   "python-rtmidi",
-  "bleak"
+  "bleak",
+  "pytemidi",
+  "pyserial",
+  "cloup"
 ]
 
 [project.scripts]
