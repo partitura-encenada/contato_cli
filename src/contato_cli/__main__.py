@@ -102,6 +102,6 @@ def com_connect(mac, dispositivo, com):
     except:
         print('Contato não encontrado')
         player.reset_channels()
-
+    
 if __name__ == "__main__":
     cli()
