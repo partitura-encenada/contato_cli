@@ -9,6 +9,7 @@ import rtmidi.midiutil
 import serial
 from bleak.backends.characteristic import BleakGATTCharacteristic
 from contato_cli.player import Player
+import contato_cli.exceptions
 # Classes de interação MIDI com o loopMIDI
 
 from bleak import BleakClient, BleakScanner # biblioteca de BLE
@@ -47,6 +48,10 @@ def connect(performance, mac, dispositivo, com) -> None:
     else:
         com_connect(mac, dispositivo, com)
 
+def bleak_disconnected_callback(client: BleakClient): 
+    print('Contato não encontrado')
+    player.reset_channels()
+
 def bleak_gyro_callback(characteristic: BleakGATTCharacteristic, data: bytearray): player.set_gyro(int.from_bytes(data, 'little', signed=True))
 def bleak_accel_callback(characteristic: BleakGATTCharacteristic, data: bytearray): player.set_accel(int.from_bytes(data, 'little', signed=True))
 def bleak_touch_callback(characteristic: BleakGATTCharacteristic, data: bytearray): player.set_touch(int.from_bytes(data, 'little', signed=False))
@@ -65,7 +70,7 @@ async def ble_connect(mac, dispositivo) -> None:
         return
 
     print("Conectando...")
-    async with BleakClient(device, disconnected_callback = lambda c : ble_player.reset_channels) as client:
+    async with BleakClient(device, disconnected_callback = bleak_disconnected_callback) as client:
         print("Conectado")
         await client.start_notify(GYRO_CHARACTERISTIC_UUID, bleak_gyro_callback)
         await client.start_notify(ACCEL_CHARACTERISTIC_UUID, bleak_accel_callback)
@@ -92,7 +97,10 @@ def com_connect(mac, dispositivo, com):
 
                 # Output
                 print(f'{id} gyro: {player.gyro} acc: {player.accel} t: {player.touch}') 
+    except MIDIInterrupt:
+        pass
     except:
+        print('Contato não encontrado')
         player.reset_channels()
 
 if __name__ == "__main__":
