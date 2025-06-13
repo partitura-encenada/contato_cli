@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "contato_cli"
 version = "0.0.1"
 dependencies = [
-  "click",
+  "asyncclick",
   "python-rtmidi",
   "bleak",
   "pytemidi",

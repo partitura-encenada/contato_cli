@@ -2,8 +2,8 @@ import rtmidi
 import time
 
 class Player:
-    def __init__(self):
-        self.config = None
+    def __init__(self, config):
+        self.config = config
         self.gyro_midiout = rtmidi.MidiOut().open_port(2)
         self.accel_midiout = rtmidi.MidiOut().open_port(3)
 
