@@ -43,6 +43,7 @@ async def scan():
 @click.option('--dispositivo', '-d', default = 'Contato')
 @click.option('--com')
 async def connect(performance, mac, dispositivo, com) -> None:
+    loop = asyncio.get_event_loop()
     rtmidi.midiutil.list_output_ports()
     with open(os.path.dirname(os.path.abspath(__file__))+ '/repertorio/' + performance + '.json') as jsonfile:
         player.config = json.load(jsonfile)
