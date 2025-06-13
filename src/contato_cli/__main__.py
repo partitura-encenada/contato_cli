@@ -44,6 +44,7 @@ async def scan():
 @click.option('--com')
 async def connect(performance, mac, dispositivo, com) -> None:
     loop = asyncio.get_event_loop()
+    loop.run_forever()
     rtmidi.midiutil.list_output_ports()
     with open(os.path.dirname(os.path.abspath(__file__))+ '/repertorio/' + performance + '.json') as jsonfile:
         player.config = json.load(jsonfile)
@@ -67,7 +68,7 @@ async def connect(performance, mac, dispositivo, com) -> None:
             await client.start_notify(GYRO_CHARACTERISTIC_UUID, bleak_gyro_callback)
             await client.start_notify(ACCEL_CHARACTERISTIC_UUID, bleak_accel_callback)
             await client.start_notify(TOUCH_CHARACTERISTIC_UUID, bleak_touch_callback)
-            await asyncio.sleep(3600) # COMO QUE RODA INFINITO
+            await asyncio.sleep(7200) # COMO QUE RODA INFINITO
             await client.stop_notify(GYRO_CHARACTERISTIC_UUID)
             await client.stop_notify(ACCEL_CHARACTERISTIC_UUID) 
             await client.stop_notify(TOUCH_CHARACTERISTIC_UUID)
