@@ -11,9 +11,9 @@ from bleak.backends.characteristic import BleakGATTCharacteristic
 from cloup.constraints import constraint, mutually_exclusive
 import rtmidi.midiutil
 
+# Classe de interação MIDI com o loopMIDI
 from contato_cli.player import Player
 
-# Classe de interação MIDI com o loopMIDI
 
 # Consultar no código embarcado
 TOUCH_CHARACTERISTIC_UUID = '62c84a29-95d6-44e4-a13d-a9372147ce21'
@@ -21,9 +21,6 @@ GYRO_CHARACTERISTIC_UUID = '9b7580ed-9fc2-41e7-b7c2-f63de01f0692'
 ACCEL_CHARACTERISTIC_UUID = 'f62094cf-21a7-4f71-bb3f-5a5b17bb134e' 
 
 player = Player()
-def bleak_gyro_callback(characteristic: BleakGATTCharacteristic, data: bytearray): player.set_gyro(int.from_bytes(data, 'little', signed=True))
-def bleak_accel_callback(characteristic: BleakGATTCharacteristic, data: bytearray): player.set_accel(int.from_bytes(data, 'little', signed=True))
-def bleak_touch_callback(characteristic: BleakGATTCharacteristic, data: bytearray): player.set_touch(int.from_bytes(data, 'little', signed=False))
 
 @click.group()
 def cli() -> None:
@@ -43,12 +40,11 @@ async def scan():
 @click.option('--dispositivo', '-d', default = 'Contato')
 @click.option('--com')
 async def connect(performance, mac, dispositivo, com) -> None:
-    loop = asyncio.get_event_loop()
-    loop.run_forever()
     rtmidi.midiutil.list_output_ports()
     with open(os.path.dirname(os.path.abspath(__file__))+ '/repertorio/' + performance + '.json') as jsonfile:
         player.config = json.load(jsonfile)
 
+    # Conexão BLE
     if not com:
         click.echo('Scan')
         if mac:
@@ -68,11 +64,10 @@ async def connect(performance, mac, dispositivo, com) -> None:
             await client.start_notify(GYRO_CHARACTERISTIC_UUID, bleak_gyro_callback)
             await client.start_notify(ACCEL_CHARACTERISTIC_UUID, bleak_accel_callback)
             await client.start_notify(TOUCH_CHARACTERISTIC_UUID, bleak_touch_callback)
-            await asyncio.sleep(7200) # COMO QUE RODA INFINITO
-            await client.stop_notify(GYRO_CHARACTERISTIC_UUID)
-            await client.stop_notify(ACCEL_CHARACTERISTIC_UUID) 
-            await client.stop_notify(TOUCH_CHARACTERISTIC_UUID)
-
+            while True:
+                await asyncio.sleep(1)
+                
+    #Conexão porta COM
     else:
         serial_port = serial.Serial(port = 'COM' + com, 
                                     baudrate=115200,
@@ -96,3 +91,7 @@ async def connect(performance, mac, dispositivo, com) -> None:
     
 if __name__ == "__main__":
     cli()
+
+def bleak_touch_callback(characteristic: BleakGATTCharacteristic, data: bytearray): player.set_touch(int.from_bytes(data, 'little', signed=False))
+def bleak_gyro_callback(characteristic: BleakGATTCharacteristic, data: bytearray): player.set_gyro(int.from_bytes(data, 'little', signed=True))
+def bleak_accel_callback(characteristic: BleakGATTCharacteristic, data: bytearray): player.set_accel(int.from_bytes(data, 'little', signed=True))
