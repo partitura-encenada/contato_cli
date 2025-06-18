@@ -54,12 +54,12 @@ class Player:
                                         note_code, # 36
                                         100])
                     self.last_gyro_notes_played_list = note_codes_list
-                    print(f'[Gyro] off: {note_codes_list}')
+                    print(f'[Gyro] Off: {note_codes_list}')
                 case 'accel':
                     self.accel_midiout.send_message([127 + self.config.get('midiout_port'), 
                                         note_code, # 36
                                         100])     
-                    print(f'[Accel] off: {note_codes_list}')   
+                    print(f'[Accel] Off: {note_codes_list}')   
 
     def set_gyro(self, gyro) -> None:
         self.gyro = gyro
