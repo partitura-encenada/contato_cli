@@ -1,7 +1,6 @@
-import os
 import sys
 import serial
-import json
+from functools import partial
 
 from bleak import BleakClient, BleakScanner # biblioteca de BLE
 import asyncio # biblioteca bleak requer asyncio
@@ -14,13 +13,10 @@ import rtmidi.midiutil
 # Classe de interação MIDI com o loopMIDI
 from contato_cli.player import Player
 
-
 # Consultar no código embarcado
 TOUCH_CHARACTERISTIC_UUID = '62c84a29-95d6-44e4-a13d-a9372147ce21'
 GYRO_CHARACTERISTIC_UUID = '9b7580ed-9fc2-41e7-b7c2-f63de01f0692'
 ACCEL_CHARACTERISTIC_UUID = 'f62094cf-21a7-4f71-bb3f-5a5b17bb134e' 
-
-player = Player()
 
 @click.group()
 def cli() -> None:
@@ -39,10 +35,12 @@ async def scan():
 @click.option('--mac', '-m')
 @click.option('--dispositivo', '-d', default = 'Contato')
 @click.option('--com')
-async def connect(performance, mac, dispositivo, com) -> None:
-    rtmidi.midiutil.list_output_ports()
-    with open(os.path.dirname(os.path.abspath(__file__))+ '/repertorio/' + performance + '.json') as jsonfile:
-        player.config = json.load(jsonfile)
+@click.option('--daw', is_flag = True)
+async def connect(performance, mac, dispositivo, com, daw) -> None:
+    if daw:
+        player = Player(performance, daw = True)
+    else:
+        player = Player(performance)
 
     # Conexão BLE
     if not com:
@@ -61,9 +59,9 @@ async def connect(performance, mac, dispositivo, com) -> None:
         click.echo("Conectando...")
         async with BleakClient(device) as client:
             click.echo("Conectado")
-            await client.start_notify(GYRO_CHARACTERISTIC_UUID, bleak_gyro_callback)
-            await client.start_notify(ACCEL_CHARACTERISTIC_UUID, bleak_accel_callback)
-            await client.start_notify(TOUCH_CHARACTERISTIC_UUID, bleak_touch_callback)
+            await client.start_notify(GYRO_CHARACTERISTIC_UUID, partial(bleak_gyro_callback, player))
+            await client.start_notify(ACCEL_CHARACTERISTIC_UUID, partial(bleak_accel_callback, player))
+            await client.start_notify(TOUCH_CHARACTERISTIC_UUID, partial(bleak_touch_callback, player))
             while True:
                 await asyncio.sleep(1)
                 
@@ -92,6 +90,9 @@ async def connect(performance, mac, dispositivo, com) -> None:
 if __name__ == "__main__":
     cli()
 
-def bleak_touch_callback(characteristic: BleakGATTCharacteristic, data: bytearray): player.set_touch(int.from_bytes(data, 'little', signed=False))
-def bleak_gyro_callback(characteristic: BleakGATTCharacteristic, data: bytearray): player.set_gyro(int.from_bytes(data, 'little', signed=True))
-def bleak_accel_callback(characteristic: BleakGATTCharacteristic, data: bytearray): player.set_accel(int.from_bytes(data, 'little', signed=True))
+def bleak_touch_callback(player, characteristic: BleakGATTCharacteristic, data: bytearray): 
+    player.set_touch(int.from_bytes(data, 'little', signed=False))
+def bleak_gyro_callback(player, characteristic: BleakGATTCharacteristic, data: bytearray): 
+    player.set_gyro(int.from_bytes(data, 'little', signed=True))
+def bleak_accel_callback(player, characteristic: BleakGATTCharacteristic, data: bytearray): 
+    player.set_accel(int.from_bytes(data, 'little', signed=True))

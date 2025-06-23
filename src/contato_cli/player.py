@@ -1,11 +1,19 @@
+import os
+import json
 import rtmidi
 import time
 
 class Player:
-    def __init__(self):
-        self.config = None
-        self.gyro_midiout = rtmidi.MidiOut().open_port(2)
-        self.accel_midiout = rtmidi.MidiOut().open_port(3)
+    def __init__(self, performance, daw = False):
+        with open(os.path.dirname(os.path.abspath(__file__))+ '/repertorio/' + performance + '.json') as jsonfile:
+            self.config = json.load(jsonfile)
+
+        if not daw:
+            self.gyro_midiout = rtmidi.MidiOut().open_port(0)
+            self.accel_midiout = self.gyro_midiout
+        else:
+            self.gyro_midiout = rtmidi.MidiOut().open_port(2) # Gyro
+            self.accel_midiout = rtmidi.MidiOut().open_port(3) # Accel
 
         # Sistema de flag assegura que condicionais só executem em mudanças de estado
         self.touch_flag = False
@@ -110,6 +118,11 @@ class Player:
                 if not self.config.get('legato'): 
                     self.stop_notes('gyro', self.last_gyro_notes_played_list)
                 self.touch_flag = False
+
+    def change_program(self, n):
+        self.gyro_midiout.send_message([192 + self.config.get('midiout_port'), 
+                            n,
+                            0])
 
     # Desliga todas as notas de um canal
     def reset_channels(self):
