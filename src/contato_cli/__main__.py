@@ -10,6 +10,7 @@ from bleak.backends.characteristic import BleakGATTCharacteristic
 from cloup.constraints import constraint, mutually_exclusive
 import rtmidi.midiutil
 
+from contato_cli.mac_contato_dict import mac_contato_dict
 # Classe de interação MIDI com o loopMIDI
 from contato_cli.player import Player
 
@@ -32,11 +33,11 @@ async def scan():
 @cli.command()
 @click.argument('performance')
 #TODO: Tornar opções mutualmente exclusivas
-@click.option('--mac', '-m')
+@click.option('--id')
 @click.option('--dispositivo', '-d', default = 'Contato')
 @click.option('--com')
 @click.option('--daw', is_flag = True)
-async def connect(performance, mac, dispositivo, com, daw) -> None:
+async def connect(performance, id, dispositivo, com, daw) -> None:
     if daw:
         player = Player(performance, daw = True)
     else:
@@ -45,8 +46,11 @@ async def connect(performance, mac, dispositivo, com, daw) -> None:
     # Conexão BLE
     if not com:
         click.echo('Scan')
-        if mac:
-            device = await BleakScanner.find_device_by_address(mac)
+        if id:
+            mac_contato_dict.get(id)
+            if mac_contato_dict.get(id) == None:
+                raise Exception 
+            device = await BleakScanner.find_device_by_address(mac_contato_dict.get(id))
         elif dispositivo:
             device = await BleakScanner.find_device_by_name(dispositivo)
         else:
