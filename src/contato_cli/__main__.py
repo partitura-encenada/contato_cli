@@ -5,10 +5,10 @@ from functools import partial
 from bleak import BleakClient, BleakScanner # biblioteca de BLE
 import asyncio # biblioteca bleak requer asyncio
 import asyncclick as click
-from cloup import command, option
+# from cloup import command, option
+# from cloup.constraints import constraint, mutually_exclusive
 from bleak.backends.characteristic import BleakGATTCharacteristic
-from cloup.constraints import constraint, mutually_exclusive
-import rtmidi.midiutil
+# import rtmidi.midiutil
 
 from contato_cli.mac_contato_dict import mac_contato_dict
 # Classe de interação MIDI com o loopMIDI

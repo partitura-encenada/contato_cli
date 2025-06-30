@@ -38,18 +38,18 @@ class Player:
             match device:
                 case 'gyro':
                     if self.pianissimo_flag:
-                        self.gyro_midiout.send_message([143 + self.config.get('midiout_port'), 
+                        self.gyro_midiout.send_message([143 + self.config.get('midi_channel'), 
                                                 note_code, # 36
                                                 127])
                         print(f'[Gyro] On (pianissimo): {note_codes_list}')
                     else:
-                        self.gyro_midiout.send_message([143 + self.config.get('midiout_port'), 
+                        self.gyro_midiout.send_message([143 + self.config.get('midi_channel'), 
                                     note_code, # 36
                                     127])
                         print(f'[Gyro] On: {note_codes_list}')
                     self.last_gyro_notes_played_list = note_codes_list
                 case 'accel':
-                    self.accel_midiout.send_message([143 + self.config.get('midiout_port'), 
+                    self.accel_midiout.send_message([143 + self.config.get('midi_channel'), 
                                     note_code, # 36
                                     100])
                     print(f'[Accel] On: {note_codes_list}')
@@ -58,19 +58,19 @@ class Player:
         for note_code in note_codes_list: # [36, 40, 43]    
             match device:
                 case 'gyro':
-                    self.gyro_midiout.send_message([127 + self.config.get('midiout_port'), 
+                    self.gyro_midiout.send_message([127 + self.config.get('midi_channel'), 
                                         note_code, # 36
                                         100])
                     self.last_gyro_notes_played_list = note_codes_list
                     print(f'[Gyro] Off: {note_codes_list}')
                 case 'accel':
-                    self.accel_midiout.send_message([127 + self.config.get('midiout_port'), 
+                    self.accel_midiout.send_message([127 + self.config.get('midi_channel'), 
                                         note_code, # 36
                                         100])     
                     print(f'[Accel] Off: {note_codes_list}')   
 
     def set_gyro(self, gyro) -> None:
-        self.gyro = gyro
+        self.gyro = gyro * self.config.get('hand')
         # Notas atuais
         for notes in self.config.get('angle_notes_list'): # [0, [['C', 3], ['E', 3], ['G', 3]]]
             notes_list = notes[1] 
@@ -120,15 +120,15 @@ class Player:
                 self.touch_flag = False
 
     def change_program(self, n):
-        self.gyro_midiout.send_message([192 + self.config.get('midiout_port'), 
+        self.gyro_midiout.send_message([192 + self.config.get('midi_channel'), 
                             n,
                             0])
 
     # Desliga todas as notas de um canal
     def reset_channels(self):
-        self.gyro_midiout.send_message([175 + self.config.get('midiout_port'), 
+        self.gyro_midiout.send_message([175 + self.config.get('midi_channel'), 
                                     123,
                                     0])
-        self.accel_midiout.send_message([175 + self.config.get('midiout_port'), 
+        self.accel_midiout.send_message([175 + self.config.get('midi_channel'), 
                                     123,
                                     0])
