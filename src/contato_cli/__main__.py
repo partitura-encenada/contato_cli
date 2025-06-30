@@ -1,4 +1,3 @@
-import sys
 import serial
 from functools import partial
 
