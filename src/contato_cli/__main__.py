@@ -9,7 +9,7 @@ import asyncclick as click
 from bleak.backends.characteristic import BleakGATTCharacteristic
 # import rtmidi.midiutil
 
-from contato_cli.mac_contato_dict import mac_contato_dict
+from contato_cli.util.mac_contato_dict import mac_contato_dict
 # Classe de interação MIDI com o loopMIDI
 from contato_cli.player import Player
 
@@ -80,10 +80,10 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                     serial_string = serial_port.readline()
                     sensor_data_list = (serial_string.decode('utf-8')).split('/')
                     id = int(sensor_data_list[0])
-                    player.set_gyro(int(sensor_data_list[1])) #TODO: Ver se gyro pode ser um int
-                    player.set_accel(float(sensor_data_list[2]))
-                    player.set_touch(int(sensor_data_list[3]))
-
+                    player.gyro = int(sensor_data_list[1])
+                    player.accel = float(sensor_data_list[2])
+                    player.touch = int(sensor_data_list[3])
+                    player.update()
                     # Output
                     click.echo(f'{id} gyro: {player.gyro} acc: {player.accel} t: {player.touch}') 
         except:
@@ -94,8 +94,9 @@ if __name__ == "__main__":
     cli()
 
 def bleak_touch_callback(player, characteristic: BleakGATTCharacteristic, data: bytearray): 
-    player.set_touch(int.from_bytes(data, 'little', signed=False))
+    player.touch = int.from_bytes(data, 'little', signed=False)
 def bleak_gyro_callback(player, characteristic: BleakGATTCharacteristic, data: bytearray): 
-    player.set_gyro(int.from_bytes(data, 'little', signed=True))
+    player.update()
+    player.gyro = int.from_bytes(data, 'little', signed=True)
 def bleak_accel_callback(player, characteristic: BleakGATTCharacteristic, data: bytearray): 
-    player.set_accel(int.from_bytes(data, 'little', signed=True))
+    player.accel = int.from_bytes(data, 'little', signed=True)
