@@ -42,33 +42,45 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
     else:
         player = Player(performance)
 
-    # Conexão BLE
-    if not com:
-        click.echo('Scan')
-        if id:
-            mac_contato_dict.get(id)
-            if mac_contato_dict.get(id) == None:
-                raise Exception 
-            device = await BleakScanner.find_device_by_address(mac_contato_dict.get(id))
-        elif dispositivo:
-            device = await BleakScanner.find_device_by_name(dispositivo)
-        else:
-            device = await BleakScanner.find_device_by_name('Contato')
-        
-        if device is None:
-            click.echo(f'Não foi possível encontrar dispositivo de nome: {dispositivo}')
-            return
+    def bleak_gyro_callback(characteristic: BleakGATTCharacteristic, data: bytearray): 
+        player.gyro = int.from_bytes(data, 'little', signed=True)
+        player.update()
+    def bleak_accel_callback(characteristic: BleakGATTCharacteristic, data: bytearray):  
+        player.accel = int.from_bytes(data, 'little', signed=True)
+    def bleak_touch_callback(characteristic: BleakGATTCharacteristic, data: bytearray):  
+        player.touch = int.from_bytes(data, 'little', signed=False)
 
-        click.echo("Conectando...")
-        async with BleakClient(device) as client:
-            click.echo("Conectado")
-            await client.start_notify(GYRO_CHARACTERISTIC_UUID, partial(bleak_gyro_callback, player))
-            await client.start_notify(ACCEL_CHARACTERISTIC_UUID, partial(bleak_accel_callback, player))
-            await client.start_notify(TOUCH_CHARACTERISTIC_UUID, partial(bleak_touch_callback, player))
-            while True:
-                await asyncio.sleep(1)
+    # Conexão BLE
+    if not com:        
+        while True:
+            if id:
+                device = await BleakScanner.find_device_by_address(id)
+            elif dispositivo:
+                device = await BleakScanner.find_device_by_name(dispositivo)
+
+            if device is None:
+                click.echo("Nenhum dispositivo encontrado, aguarde a procura novamente")
+                await asyncio.sleep(30)
+                # TODO: may want to give up after X number of retries
+                continue
+
+            disconnect_event = asyncio.Event()
                 
-    #Conexão porta COM
+            try:
+                click.echo("Conectando...")
+                async with BleakClient(
+                    device, disconnected_callback=lambda c: disconnect_event.set()
+                ) as client:
+                    click.echo("Conectado")
+                    await client.start_notify(GYRO_CHARACTERISTIC_UUID, bleak_gyro_callback)
+                    await client.start_notify(ACCEL_CHARACTERISTIC_UUID, bleak_accel_callback)
+                    await client.start_notify(TOUCH_CHARACTERISTIC_UUID, bleak_touch_callback)
+                    await disconnect_event.wait()
+                    click.echo("Desconectado")
+            except Exception:
+                click.echo("Ocorreu um erro durante a conexão")
+                
+    # Conexão porta COM
     else:
         serial_port = serial.Serial(port = 'COM' + com, 
                                     baudrate=115200,
@@ -87,16 +99,9 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                     # Output
                     click.echo(f'{id} gyro: {player.gyro} acc: {player.accel} t: {player.touch}') 
         except:
-            click.echo('Porta COM não encontrada')
+            click.echo('Porta COM não encontrada.')
             player.reset_channels()
     
 if __name__ == "__main__":
     cli()
-
-def bleak_touch_callback(player, characteristic: BleakGATTCharacteristic, data: bytearray): 
-    player.touch = int.from_bytes(data, 'little', signed=False)
-def bleak_gyro_callback(player, characteristic: BleakGATTCharacteristic, data: bytearray): 
-    player.update()
-    player.gyro = int.from_bytes(data, 'little', signed=True)
-def bleak_accel_callback(player, characteristic: BleakGATTCharacteristic, data: bytearray): 
-    player.accel = int.from_bytes(data, 'little', signed=True)
+                        
