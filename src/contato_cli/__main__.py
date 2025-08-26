@@ -86,21 +86,17 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                                     baudrate=115200,
                                     timeout=2, 
                                     stopbits=serial.STOPBITS_ONE)
-        try:
-            while True:
-                if(serial_port.in_waiting > 0):
-                    serial_string = serial_port.readline()
-                    sensor_data_list = (serial_string.decode('utf-8')).split('/')
-                    id = int(sensor_data_list[0])
-                    player.gyro = int(sensor_data_list[1])
-                    player.accel = float(sensor_data_list[2])
-                    player.touch = int(sensor_data_list[3])
-                    player.update()
-                    # Output
-                    click.echo(f'{id} gyro: {player.gyro} acc: {player.accel} t: {player.touch}') 
-        except:
-            click.echo('Porta COM não encontrada.')
-            player.reset_channels()
+        while True:
+            if(serial_port.in_waiting > 0):
+                serial_string = serial_port.readline()
+                sensor_data_list = (serial_string.decode('utf-8')).split('/')
+                id = int(sensor_data_list[0])   
+                player.gyro = int(sensor_data_list[1])
+                player.accel = float(sensor_data_list[2])
+                player.touch = int(sensor_data_list[3])
+                player.update()
+                # Output
+                click.echo(f'{id} gyro: {player.gyro} acc: {player.accel} t: {player.touch}') 
     
 if __name__ == "__main__":
     cli()
