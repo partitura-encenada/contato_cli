@@ -1,7 +1,7 @@
 {
-    "midi_channel" : 1,
+    "midi_channel" : 5,
     "legato" : false,
-    "hand" : -1,
+    "hand" : 1,
     "angle_notes_list": [
         [-62, [["G", 5]]],
         [-20, [["G#", 5]]],
@@ -11,7 +11,7 @@
     ],  
     "accel_notes":[["F#", 2]],
     "accel_delay": 2,                      
-    "accel_sensitivity_+": 10000,  
-    "accel_sensitivity_-": 10000,
+    "accel_sensitivity_+": 12000,  
+    "accel_sensitivity_-": 12000,
     "pitch_bend": false
 }

@@ -1,7 +1,7 @@
 {
-    "midi_channel" : 6,
+    "midi_channel" : 8,
     "legato" : false,
-    "hand" : 1,
+    "hand" : -1,
     "angle_notes_list": [
         [-137, [["E", 3]]],
         [-91, [["A", 4]]],
