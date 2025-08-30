@@ -1,5 +1,5 @@
 # Contato CLI
-[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/partitura-encenada/contato_cli/blob/main/README.md)
+[![pt=br](https://img.shields.io/badge/lang-pt--br-green.svg)](https://github.com/partitura-encenada/contato_cli/blob/main/README.md)
 CLI ( Interface de Linha de Comando ) para interagir com o dispositivo Contato desenvolvido na Universidade Federal do Rio de Janeiro em parceria com o Parque Tecnológico 🎶🖥️ 
 
 ## Conteúdo
