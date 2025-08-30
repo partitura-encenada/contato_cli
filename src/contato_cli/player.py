@@ -26,7 +26,7 @@ class Player:
         self.current_gyro_notes = []
         self.last_gyro_notes_played = []
         self.last_accel_trigger_time = 0
-        self.tones = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+        self.tones = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] # Notas musicais
 
 
     def update(self):

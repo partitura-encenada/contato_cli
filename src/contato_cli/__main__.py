@@ -1,17 +1,11 @@
 import serial
 from functools import partial
-
 from bleak import BleakClient, BleakScanner # biblioteca de BLE
 import asyncio # biblioteca bleak requer asyncio
 import asyncclick as click
-# from cloup import command, option
-# from cloup.constraints import constraint, mutually_exclusive
 from bleak.backends.characteristic import BleakGATTCharacteristic
-# import rtmidi.midiutil
-
 from contato_cli.util.mac_contato_dict import mac_contato_dict
-# Classe de interação MIDI com o loopMIDI
-from contato_cli.player import Player
+from contato_cli.player import Player # Classe de interação MIDI com o loopMIDI
 
 # Consultar no código embarcado
 TOUCH_CHARACTERISTIC_UUID = '62c84a29-95d6-44e4-a13d-a9372147ce21'
@@ -42,26 +36,24 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
     else:
         player = Player(performance)
 
-    def bleak_gyro_callback(characteristic: BleakGATTCharacteristic, data: bytearray): 
-        player.gyro = int.from_bytes(data, 'little', signed=True)
-        player.update()
-    def bleak_accel_callback(characteristic: BleakGATTCharacteristic, data: bytearray):  
-        player.accel = int.from_bytes(data, 'little', signed=True)
-    def bleak_touch_callback(characteristic: BleakGATTCharacteristic, data: bytearray):  
-        player.touch = int.from_bytes(data, 'little', signed=False)
-
     # Conexão BLE
     if not com:        
+        def bleak_gyro_callback(characteristic: BleakGATTCharacteristic, data: bytearray): 
+            player.gyro = int.from_bytes(data, 'little', signed=True)
+            player.update()
+        def bleak_accel_callback(characteristic: BleakGATTCharacteristic, data: bytearray):  
+            player.accel = int.from_bytes(data, 'little', signed=True)
+        def bleak_touch_callback(characteristic: BleakGATTCharacteristic, data: bytearray):  
+            player.touch = int.from_bytes(data, 'little', signed=False)
         while True:
             if id:
                 device = await BleakScanner.find_device_by_address(id)
             elif dispositivo:
                 device = await BleakScanner.find_device_by_name(dispositivo)
-
+            click.echo('Scan')
             if device is None:
                 click.echo("Nenhum dispositivo encontrado, aguarde a procura novamente")
                 await asyncio.sleep(30)
-                # TODO: may want to give up after X number of retries
                 continue
 
             disconnect_event = asyncio.Event()
@@ -77,8 +69,6 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                     await client.start_notify(TOUCH_CHARACTERISTIC_UUID, bleak_touch_callback)
                     await disconnect_event.wait()
                     click.echo("Desconectado")
-            except Exception:
-                click.echo("Ocorreu um erro durante a conexão")
                 
     # Conexão porta COM
     else:
