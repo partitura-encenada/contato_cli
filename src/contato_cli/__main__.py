@@ -37,14 +37,17 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
         player = Player(performance)
 
     # Conexão BLE
-    if not com:        
+    if not com:
+        gyro = 0
+        accel = 0
+        touch = 0       
         def bleak_gyro_callback(characteristic: BleakGATTCharacteristic, data: bytearray): 
-            player.gyro = int.from_bytes(data, 'little', signed=True)
-            player.update()
+            gyro = int.from_bytes(data, 'little', signed=True)
+            player.update(gyro, accel, touch)
         def bleak_accel_callback(characteristic: BleakGATTCharacteristic, data: bytearray):  
-            player.accel = int.from_bytes(data, 'little', signed=True)
+            accel = int.from_bytes(data, 'little', signed=True)
         def bleak_touch_callback(characteristic: BleakGATTCharacteristic, data: bytearray):  
-            player.touch = int.from_bytes(data, 'little', signed=False)
+            touch = int.from_bytes(data, 'little', signed=False)
         while True:
             if id:
                 device = await BleakScanner.find_device_by_address(id)
@@ -80,13 +83,14 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
             if(serial_port.in_waiting > 0):
                 serial_string = serial_port.readline()
                 sensor_data_list = (serial_string.decode('utf-8')).split('/')
-                id = int(sensor_data_list[0])   
-                player.gyro = int(sensor_data_list[1])
-                player.accel = float(sensor_data_list[2])
-                player.touch = int(sensor_data_list[3])
-                player.update()
-                # Output
-                click.echo(f'{id} gyro: {player.gyro} acc: {player.accel} t: {player.touch}') 
+                # Leitura do sensor
+                click.echo(f'{int(sensor_data_list[0])} 
+                            gyro: {sensor_data_list[1]} 
+                            acc: {sensor_data_list[2]} 
+                            t: {sensor_data_list[3]}') 
+                player.update(int(sensor_data_list[1]),
+                            float(sensor_data_list[2]),
+                            int(sensor_data_list[3]))
     
 if __name__ == "__main__":
     cli()

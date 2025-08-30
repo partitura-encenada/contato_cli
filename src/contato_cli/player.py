@@ -4,6 +4,7 @@ import rtmidi
 import time
 
 class Player:
+    """Gera e comunica com os objetos MIDI"""
     def __init__(self, performance, daw = False):
         with open(os.path.dirname(os.path.abspath(__file__))+ '/repertorio/' + performance + '.json') as jsonfile:
             self.config = json.load(jsonfile)
@@ -19,20 +20,18 @@ class Player:
         self.touch_flag = False
         self.accel_flag = False
 
-        self.gyro = 0 
-        self.accel = 0
-        self.touch = 0
         self.current_gyro_notes = []
         self.last_gyro_notes_played = []
         self.last_accel_trigger_time = 0
         self.tones = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] # Notas musicais
 
 
-    def update(self):
+    def update(self, gyro, accel, touch) -> None:
+        """"""
         # ANGLE
         for notes in self.config.get('angle_notes_list'): # [0, [['C', 3], ['E', 3], ['G', 3]]]
             notes_list = notes[1] 
-            if self.gyro <= notes[0]: # TODO: testar limite infinito das notas
+            if gyro <= notes[0]: # TODO: testar limite infinito das notas
                 break
 
         self.current_gyro_notes = self.convert_to_midi_codes(notes_list) 
@@ -40,7 +39,7 @@ class Player:
 
         # ACCEL
         if time.time() - self.last_accel_trigger_time > self.config.get('accel_delay'):
-            if abs(self.accel) > self.config.get('accel_sensitivity_+') or abs(self.accel) > self.config.get('accel_sensitivity_-'):
+            if abs(accel) > self.config.get('accel_sensitivity_+') or abs(accel) > self.config.get('accel_sensitivity_-'):
                 if self.config.get('legato'): # Caso legato esteja ativado, a funcionalidade será interromper última nota
                     self.stop_notes('gyro', self.last_gyro_notes_played)     
                 self.play_notes('accel', self.convert_to_midi_codes(self.config.get('accel_notes')))
@@ -52,7 +51,7 @@ class Player:
                 self.accel_flag = False    
         
         # TOUCH
-        if self.touch: 
+        if touch: 
             # Início do toque
             if not self.touch_flag:
                 if self.config.get('legato'):
@@ -110,13 +109,13 @@ class Player:
                                         100])     
                     print(f'[Accel] Off: {note_codes_list}')   
 
-    def change_program(self, n):
+    def change_program(self, n) -> None:
         self.gyro_midiout.send_message([192 + self.config.get('midi_channel'), 
                             n,
                             0])
 
     # Desliga todas as notas de um canal
-    def reset_channels(self):
+    def reset_channels(self) -> None:
         self.gyro_midiout.send_message([175 + self.config.get('midi_channel'), 
                                     123,
                                     0])
