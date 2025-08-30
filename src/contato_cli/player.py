@@ -18,7 +18,6 @@ class Player:
         # Sistema de flag assegura que condicionais só executem em mudanças de estado
         self.touch_flag = False
         self.accel_flag = False
-        self.pianissimo_flag = False
 
         self.gyro = 0 
         self.accel = 0
@@ -58,10 +57,6 @@ class Player:
             if not self.touch_flag:
                 if self.config.get('legato'):
                     self.stop_notes('gyro', self.last_gyro_notes_played)
-                if self.touch == 2:
-                    self.pianissimo_flag = True
-                else:
-                    self.pianissimo_flag = False
                 self.play_notes('gyro', self.current_gyro_notes)
                 self.touch_flag = True 
     
@@ -89,16 +84,10 @@ class Player:
         for note_code in note_codes_list: # [36, 40, 43] 
             match device:
                 case 'gyro':
-                    if self.pianissimo_flag:
-                        self.gyro_midiout.send_message([143 + self.config.get('midi_channel'), 
-                                                note_code, # 36
-                                                127])
-                        print(f'[Gyro] On (pianissimo): {note_codes_list}')
-                    else:
-                        self.gyro_midiout.send_message([143 + self.config.get('midi_channel'), 
-                                    note_code, # 36
-                                    127])
-                        print(f'[Gyro] On: {note_codes_list}')
+                    self.gyro_midiout.send_message([143 + self.config.get('midi_channel'), 
+                                note_code, # 36
+                                127])
+                    print(f'[Gyro] On: {note_codes_list}')
                     self.last_gyro_notes_played = note_codes_list
                 case 'accel':
                     self.accel_midiout.send_message([143 + self.config.get('midi_channel'), 
