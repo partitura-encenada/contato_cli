@@ -1,5 +1,5 @@
 # Contato CLI
-[![pt-br](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/partitura-encenada/contato_cli/blob/main/README.pt-br.md)
+[![pt-br](https://img.shields.io/badge/lang-pt--br-green.svg)](https://github.com/partitura-encenada/contato_cli/blob/main/README.pt-br.md)
 CLI for interfacing with the "Contato" device being developed at Universidade Federal do Rio de Janeiro in partnership with the UFRJ Technology Park🎶🖥️ 
 
 ## Content
