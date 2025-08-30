@@ -1,6 +1,0 @@
-[submodule "click"]
-	path = click
-	url = https://github.com/pallets/click.git
-[submodule "bleak"]
-	path = bleak
-	url = https://github.com/hbldh/bleak.git
