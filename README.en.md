@@ -1,37 +1,37 @@
 # Contato CLI
-[![pt=br](https://img.shields.io/badge/lang-pt--br-green.svg)](https://github.com/partitura-encenada/contato_cli/blob/main/README.md)
-CLI ( Interface de Linha de Comando ) para interagir com o dispositivo Contato desenvolvido na Universidade Federal do Rio de Janeiro em parceria com o Parque Tecnológico 🎶🖥️ 
+[![pt-br](https://img.shields.io/badge/lang-pt--br-green.svg)](https://github.com/partitura-encenada/contato_cli/blob/main/README.md)
+CLI for interfacing with the "Contato" device being developed at Universidade Federal do Rio de Janeiro in partnership with the UFRJ Technology Park🎶🖥️ 
 
-## Conteúdo
-* 🖥️ Requisitos
-* ➕ Adicionais
-* 🪛 Como instalar 
-* ❓ Como usar
-* 📁 Estrutura do projeto
-* 📄 Documentação com pydocs
-* 📌 Gerenciamento de projeto
+## Content
+* 🖥️ Requirements
+* ➕ Adds
+* 🪛 How to install 
+* ❓ How to use
+* 📁 Project structure
+* 📄 Pydocs documentation
+* 📌 Project management
 
-### Requisitos 🖥️
-* Sistema operacional Windows 8 ou versões superiores.
-* Python 3.5 ou versões superiores.
-* Bluetooth 4.2 com suporte BLE ou versões superiores.
+### Requirements 🖥️
+* Windows 8 operational system or superior.
+* Python 3.5 or superior.
+* Bluetooth 4.2 with BLE support or superior.
 
-### Adicionais ➕
-Algumas funcionalidades exigem algum software externo para criação de portas MIDI virtuais ( é recomendado o [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html), do Tobias Erichsen ).
+### Adds ➕
+Some functionalities require external software to open virtual MIDI ports ( it's recommended Tobias Erichsen's [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html) ).
 
-### Como instalar 🪛
-Em seu terminal, execute:
+### How to install 🪛
+In your terminal, execute:
 `pip install {caminho/até/o/repositório}`
-Você pode adicionar a flag `-e` para tornar o módulo editável e pode fazer mudanças no código dinamicamente.
+You can add the -e flag to make the codebase editable and make the module dynamically updated.
 
-### Como usar ❓
-Todos os comandos são pre-fixados com a palavra chave `contato`
-Você pode digitar `{comando} --help` para obter as opções disponíveis para cada comando
-Exemplo de utilização:
+### How to use ❓
+Every command is pre-fixated with the keyword `contato`
+You can type `{command} --help` to obtain options for each command
+Usage example:
 `contato connect descontato_d --com 4 --daw`
-O exemplo acima executa o comando `connect` com o argumento de um setup salvo `descontato_d` com as seguintes opções: 
-* `--com` Possibilita a conexão com uma "serial string" do aparelho através de uma porta COM, nesse caso ele vai tentar conectar através da porta COM4
-* `--daw` Desativa a conexão com o Microsoft GS Wavetable Synth e utiliza as duas primeiras portas MIDI virtuais abertas no sistema.
+The above example executes the "connect" command with the "setup" argument `descontato_d` with the following options: 
+* `--com` Enables connection with a device "serial string" through a COM port, in this case it will try to connect using the COM4 port
+* `--daw` Disables the default connection with the Microsoft GS Wavetable and uses the two first virtual MIDI ports open in the system.
 
 ### Estrutura de projeto 📁 
 
