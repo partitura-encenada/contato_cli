@@ -14,7 +14,7 @@
     ],  
     "accel_notes":[["A", 2]],
     "accel_delay": 2,                      
-    "accel_sensitivity_+": 8000,  
-    "accel_sensitivity_-": 8000,
+    "accel_sensitivity_+": 13000,  
+    "accel_sensitivity_-": 13000,
     "pitch_bend": false
 }
