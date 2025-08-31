@@ -18,6 +18,7 @@ def cli() -> None:
 
 @cli.command()
 async def scan():
+    '''Mostra dispositivos disponíveis no alcance'''
     click.echo('Scan')
     devices = await BleakScanner.discover()
     for d in devices:
@@ -31,6 +32,7 @@ async def scan():
 @click.option('--com')
 @click.option('--daw', is_flag = True)
 async def connect(performance, id, dispositivo, com, daw) -> None:
+    '''Recebe uma referência para um setup 'performance.json', inicia a conexão e em seguida executa a performance'''
     if daw:
         player = Player(performance, daw = True)
     else:
@@ -61,17 +63,15 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
 
             disconnect_event = asyncio.Event()
                 
-            try:
-                click.echo("Conectando...")
-                async with BleakClient(
-                    device, disconnected_callback=lambda c: disconnect_event.set()
-                ) as client:
-                    click.echo("Conectado")
-                    await client.start_notify(GYRO_CHARACTERISTIC_UUID, bleak_gyro_callback)
-                    await client.start_notify(ACCEL_CHARACTERISTIC_UUID, bleak_accel_callback)
-                    await client.start_notify(TOUCH_CHARACTERISTIC_UUID, bleak_touch_callback)
-                    await disconnect_event.wait()
-                    click.echo("Desconectado")
+            click.echo("Conectando...")
+            async with BleakClient(
+                device, disconnected_callback=lambda c: disconnect_event.set()) as client:
+                click.echo("Conectado")
+                await client.start_notify(GYRO_CHARACTERISTIC_UUID, bleak_gyro_callback)
+                await client.start_notify(ACCEL_CHARACTERISTIC_UUID, bleak_accel_callback)
+                await client.start_notify(TOUCH_CHARACTERISTIC_UUID, bleak_touch_callback)
+                await disconnect_event.wait()
+                click.echo("Desconectado")
                 
     # Conexão porta COM
     else:
@@ -84,10 +84,7 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                 serial_string = serial_port.readline()
                 sensor_data_list = (serial_string.decode('utf-8')).split('/')
                 # Leitura do sensor
-                click.echo(f'{int(sensor_data_list[0])} 
-                            gyro: {sensor_data_list[1]} 
-                            acc: {sensor_data_list[2]} 
-                            t: {sensor_data_list[3]}') 
+                click.echo(f'{int(sensor_data_list[0])} gyro: {sensor_data_list[1]} acc: {sensor_data_list[2]} t: {sensor_data_list[3]}') 
                 player.update(int(sensor_data_list[1]),
                             float(sensor_data_list[2]),
                             int(sensor_data_list[3]))

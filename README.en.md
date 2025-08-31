@@ -8,7 +8,6 @@ CLI for interfacing with the "Contato" device being developed at Universidade Fe
 * 🪛 How to install 
 * ❓ How to use
 * 📁 Project structure
-* 📄 Pydocs documentation
 * 📌 Project management
 
 ### Requirements 🖥️
@@ -56,9 +55,7 @@ contato_cli
 
 ├── pyproject.toml # metadados do projeto
 
-└── README.md #
-
-### Documentação com pydocs 📄
+└── README.md # this file
 
 ### Gerenciamento de projeto 📌
 Foi utilizado a ferramenta de gerenciamento de projeto própria do [github](https://github.com/users/partitura-encenada/projects/2) para criação, gerenciamento e associação de tarefas e pontos de destaque no desenvolver do projeto.

@@ -4,7 +4,7 @@ import rtmidi
 import time
 
 class Player:
-    """Gera e comunica com os objetos MIDI"""
+    """Gera objetos de comunicação MIDI"""
     def __init__(self, performance, daw = False):
         with open(os.path.dirname(os.path.abspath(__file__))+ '/repertorio/' + performance + '.json') as jsonfile:
             self.config = json.load(jsonfile)
@@ -27,7 +27,7 @@ class Player:
 
 
     def update(self, gyro, accel, touch) -> None:
-        """"""
+        """Recebe input dos parâmetros do dispositivos e acionar eventos MIDI"""
         # ANGLE
         for notes in self.config.get('angle_notes_list'): # [0, [['C', 3], ['E', 3], ['G', 3]]]
             notes_list = notes[1] 
@@ -72,6 +72,7 @@ class Player:
 
     # --UTIL FUNCTIONS--
     def convert_to_midi_codes(self, notes_list) -> list[int]: # [['C', 3], ['E', 3], ['G', 3]] 
+        """Recebe uma lista de notas musicais e retorna uma lista de seus respectivos códigos de nota MIDI"""
         midi_codes = []
         for note in notes_list: # [['C', 3], ['E', 3], ['G', 3]] 
             for i in range(len(self.tones)): # for i in 12
@@ -80,6 +81,7 @@ class Player:
         return midi_codes # [36, 40, 43]
 
     def play_notes(self, device, note_codes_list) -> None:
+        """Recebe uma lista de códigos de nota MIDI e as aciona"""
         for note_code in note_codes_list: # [36, 40, 43] 
             match device:
                 case 'gyro':
@@ -95,6 +97,7 @@ class Player:
                     print(f'[Accel] On: {note_codes_list}')
     
     def stop_notes(self, device, note_codes_list) -> None:
+        """Recebe uma lista de códigos de nota MIDI e as interrompe"""
         for note_code in note_codes_list: # [36, 40, 43]    
             match device:
                 case 'gyro':
@@ -110,12 +113,13 @@ class Player:
                     print(f'[Accel] Off: {note_codes_list}')   
 
     def change_program(self, n) -> None:
+        """Troca programa"""
         self.gyro_midiout.send_message([192 + self.config.get('midi_channel'), 
                             n,
                             0])
 
-    # Desliga todas as notas de um canal
     def reset_channels(self) -> None:
+        """Interrompe todos os eventos de um canal"""
         self.gyro_midiout.send_message([175 + self.config.get('midi_channel'), 
                                     123,
                                     0])
