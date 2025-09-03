@@ -40,16 +40,13 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
 
     # Conexão BLE
     if not com:
-        gyro = 0
-        accel = 0
-        touch = 0       
         def bleak_gyro_callback(characteristic: BleakGATTCharacteristic, data: bytearray): 
-            gyro = int.from_bytes(data, 'little', signed=True)
-            player.update(gyro, accel, touch)
+            player.gyro = int.from_bytes(data, 'little', signed=True)
+            player.update()
         def bleak_accel_callback(characteristic: BleakGATTCharacteristic, data: bytearray):  
-            accel = int.from_bytes(data, 'little', signed=True)
-        def bleak_touch_callback(characteristic: BleakGATTCharacteristic, data: bytearray):  
-            touch = int.from_bytes(data, 'little', signed=False)
+            player.accel = int.from_bytes(data, 'little', signed=True)
+        def bleak_touch_callback(characteristic: BleakGATTCharacteristic, data: bytearray):
+            player.touch = int.from_bytes(data, 'little', signed=False)
         while True:
             if id:
                 device = await BleakScanner.find_device_by_address(id)
