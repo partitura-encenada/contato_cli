@@ -16,7 +16,7 @@ authors = [
   {name = "Arthur Ranquine", email = "aranquine@ufrj.br"}
 ]
 maintainers = [
-  {name = "Arthur Ranquine", email = "aranquine@ufrj.br"}
+  {name = "Arthur Ranquine", email = "aranquine@ufrj.br"},
   {name = "Carol Breder", email = "c.brederfigueiredo@gmail.com"}
 ]
 
