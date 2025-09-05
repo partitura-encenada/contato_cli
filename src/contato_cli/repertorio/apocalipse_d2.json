@@ -1,5 +1,5 @@
 {
-    "midi_channel" : 4,
+    "midi_channel" : 6,
     "legato" : false,
     "hand" : -1,
     "angle_notes_list": [
