@@ -13,8 +13,8 @@ class Player:
             self.gyro_midiout = rtmidi.MidiOut().open_port(0)
             self.accel_midiout = self.gyro_midiout
         else:
-            self.gyro_midiout = rtmidi.MidiOut().open_port(2) # Gyro
-            self.accel_midiout = rtmidi.MidiOut().open_port(3) # Accel
+            self.gyro_midiout = rtmidi.MidiOut().open_port(1) # Gyro
+            self.accel_midiout = rtmidi.MidiOut().open_port(2) # Accel
 
         # Sistema de flag assegura que condicionais só executem em mudanças de estado
         self.touch_flag = False
