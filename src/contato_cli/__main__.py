@@ -81,11 +81,12 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                 serial_string = serial_port.readline()
                 sensor_data_list = (serial_string.decode('utf-8')).split('/')
                 # Leitura do sensor
-                click.echo(f'{int(sensor_data_list[0])} gyro: {sensor_data_list[1]} acc: {sensor_data_list[2]} t: {sensor_data_list[3]}') 
-                player.update(int(sensor_data_list[1]),
-                            float(sensor_data_list[2]),
-                            int(sensor_data_list[3]))
-    
+                click.echo(f'{int(sensor_data_list[0])} roll: {sensor_data_list[1]} acc_x: {sensor_data_list[4]} t: {sensor_data_list[7]}') 
+                player.gyro = int(sensor_data_list[1])
+                player.accel = int(sensor_data_list[4])
+                player.touch = int(sensor_data_list[7])
+                player.update()
+                
 if __name__ == "__main__":
     cli()
                         
