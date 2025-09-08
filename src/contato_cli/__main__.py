@@ -43,7 +43,7 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
         def bleak_gyro_callback(characteristic: BleakGATTCharacteristic, data: bytearray): 
             player.gyro = int.from_bytes(data, 'little', signed=True)
             player.update()
-            click.echo(f'roll: {player.roll} acc_x: {player.accel} t: {player.touch}')
+            click.echo(f'roll: {player.gyro} acc_x: {player.accel} t: {player.touch}')
         def bleak_accel_callback(characteristic: BleakGATTCharacteristic, data: bytearray):  
             player.accel = int.from_bytes(data, 'little', signed=True)
         def bleak_touch_callback(characteristic: BleakGATTCharacteristic, data: bytearray):
