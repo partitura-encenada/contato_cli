@@ -91,13 +91,13 @@ class Player:
                     self.gyro_midiout.send_message([143 + self.config.get('midi_channel'), 
                                 note_code, # 36
                                 127])
-                    print(f'[Gyro] On: {note_codes_list}')
+                    # print(f'[Gyro] On: {note_codes_list}')
                     self.last_gyro_notes_played = note_codes_list
                 case 'accel':
                     self.accel_midiout.send_message([143 + self.config.get('midi_channel'), 
                                     note_code, # 36
                                     100])
-                    print(f'[Accel] On: {note_codes_list}')
+                    # print(f'[Accel] On: {note_codes_list}')
     
     def stop_notes(self, device, note_codes_list) -> None:
         """Recebe uma lista de códigos de nota MIDI e as interrompe"""
@@ -108,12 +108,12 @@ class Player:
                                         note_code, # 36
                                         100])
                     self.last_gyro_notes_played = note_codes_list
-                    print(f'[Gyro] Off: {note_codes_list}')
+                    # print(f'[Gyro] Off: {note_codes_list}')
                 case 'accel':
                     self.accel_midiout.send_message([127 + self.config.get('midi_channel'), 
                                         note_code, # 36
                                         100])     
-                    print(f'[Accel] Off: {note_codes_list}')   
+                    # print(f'[Accel] Off: {note_codes_list}')   
 
     def change_program(self, n) -> None:
         """Troca programa"""

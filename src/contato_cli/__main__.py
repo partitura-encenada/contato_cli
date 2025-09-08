@@ -43,6 +43,7 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
         def bleak_gyro_callback(characteristic: BleakGATTCharacteristic, data: bytearray): 
             player.gyro = int.from_bytes(data, 'little', signed=True)
             player.update()
+            click.echo(f'roll: {player.roll} acc_x: {player.accel} t: {player.touch}')
         def bleak_accel_callback(characteristic: BleakGATTCharacteristic, data: bytearray):  
             player.accel = int.from_bytes(data, 'little', signed=True)
         def bleak_touch_callback(characteristic: BleakGATTCharacteristic, data: bytearray):
@@ -81,8 +82,8 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                 serial_string = serial_port.readline()
                 sensor_data_list = (serial_string.decode('utf-8')).split('/')
                 # Leitura do sensor
-                click.echo(f'{int(sensor_data_list[0])} roll: {sensor_data_list[1]} acc_x: {sensor_data_list[4]} t: {sensor_data_list[7]}') 
-                player.gyro = int(sensor_data_list[1])
+                click.echo(f'{int(sensor_data_list[0])} roll: {sensor_data_list[3]} acc_x: {sensor_data_list[4]} t: {sensor_data_list[7]}') 
+                player.gyro = int(sensor_data_list[3])
                 player.accel = int(sensor_data_list[4])
                 player.touch = int(sensor_data_list[7])
                 player.update()
