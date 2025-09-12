@@ -41,18 +41,18 @@ class Player:
                         self.gyro_midiout.send_message([143 + self.config.get('midi_channel'), 
                                                 note_code, # 36
                                                 127])
-                        print(f'[Gyro] On (pianissimo): {note_codes_list}')
+                        # print(f'[Gyro] On (pianissimo): {note_codes_list}')
                     else:
                         self.gyro_midiout.send_message([143 + self.config.get('midi_channel'), 
                                     note_code, # 36
                                     127])
-                        print(f'[Gyro] On: {note_codes_list}')
+                        # print(f'[Gyro] On: {note_codes_list}')
                     self.last_gyro_notes_played_list = note_codes_list
                 case 'accel':
                     self.accel_midiout.send_message([143 + self.config.get('midi_channel'), 
                                     note_code, # 36
                                     100])
-                    print(f'[Accel] On: {note_codes_list}')
+                    # print(f'[Accel] On: {note_codes_list}')
     
     def stop_notes(self, device, note_codes_list) -> None:
         for note_code in note_codes_list: # [36, 40, 43]    
@@ -62,12 +62,12 @@ class Player:
                                         note_code, # 36
                                         100])
                     self.last_gyro_notes_played_list = note_codes_list
-                    print(f'[Gyro] Off: {note_codes_list}')
+                    # print(f'[Gyro] Off: {note_codes_list}')
                 case 'accel':
                     self.accel_midiout.send_message([127 + self.config.get('midi_channel'), 
                                         note_code, # 36
                                         100])     
-                    print(f'[Accel] Off: {note_codes_list}')   
+                    # print(f'[Accel] Off: {note_codes_list}')   
 
     def set_gyro(self, gyro) -> None:
         self.gyro = gyro * self.config.get('hand')
