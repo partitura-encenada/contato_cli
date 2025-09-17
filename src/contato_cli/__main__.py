@@ -40,6 +40,7 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
 
     # Conexão BLE
     if not com:
+        click.echo('Scan')
         def bleak_gyro_callback(characteristic: BleakGATTCharacteristic, data: bytearray): 
             player.gyro = int.from_bytes(data, 'little', signed=True)
             player.update()
@@ -53,7 +54,6 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                 device = await BleakScanner.find_device_by_address(id)
             elif dispositivo:
                 device = await BleakScanner.find_device_by_name(dispositivo)
-            click.echo('Scan')
             if device is None:
                 click.echo("Nenhum dispositivo encontrado, aguarde a procura novamente")
                 await asyncio.sleep(30)
