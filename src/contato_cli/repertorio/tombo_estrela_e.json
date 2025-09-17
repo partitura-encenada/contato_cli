@@ -1,5 +1,5 @@
 {
-    "midi_channel" : 9,
+    "midi_channel" : 7,
     "legato" : false,
     "hand" : -1,
     "angle_notes_list": [
@@ -10,7 +10,7 @@
         [180, [["G", 4]]]
     ],  
     "accel_notes":[["F#", 2]],
-    "accel_delay": 3,                      
+    "accel_delay": 100,                      
     "accel_sensitivity_+": 12000,  
     "accel_sensitivity_-": 12000,
     "pitch_bend": false
