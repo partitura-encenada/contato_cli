@@ -13,8 +13,8 @@
         [180, [["A", 4]]]
     ],  
     "accel_notes":[["A", 2]],
-    "accel_delay": 1,                      
-    "accel_sensitivity_+": 10000,  
-    "accel_sensitivity_-": 10000,
+    "accel_delay": 2,                      
+    "accel_sensitivity_+": 11000,  
+    "accel_sensitivity_-": 11000,
     "pitch_bend": false
 }
