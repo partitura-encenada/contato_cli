@@ -8,9 +8,9 @@
         [56, [["C#", 4]]],
         [180, [["F#", 3]]]
     ],  
-    "accel_notes":[["G#", 5]],
+    "accel_notes":[["G#", 4]],
     "accel_delay": 2,                      
-    "accel_sensitivity_+": 8000,  
-    "accel_sensitivity_-": 8000,
+    "accel_sensitivity_+": 11000,  
+    "accel_sensitivity_-": 11000,
     "pitch_bend": false
 }
