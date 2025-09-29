@@ -1,5 +1,4 @@
 import serial
-from functools import partial
 from bleak import BleakClient, BleakScanner # biblioteca de BLE
 import asyncio # biblioteca bleak requer asyncio
 import asyncclick as click
