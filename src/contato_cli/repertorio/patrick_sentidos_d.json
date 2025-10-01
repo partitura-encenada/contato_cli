@@ -3,15 +3,13 @@
     "legato" : false,
     "hand" : -1,
     "angle_notes_list": [
-        [-100, [["C", 6]]],
-        [-50, [["E", 5]]],
-        [20, [["A", 5]]],
-        [80, [["C", 5]]],
-        [180, [["C", 6]]]        
-    ],  
-    "accel_notes":[["G#", 5]],
+        [-40, [["G", 6]]],
+        [40, [["A", 6]]],
+        [180, [["D", 6]]]
+    ],   
+    "accel_notes":[["G#", 6]],
     "accel_delay": 2,                      
-    "accel_sensitivity_+": 8000,  
-    "accel_sensitivity_-": 8000,
+    "accel_sensitivity_+": 11000,  
+    "accel_sensitivity_-": 11000,
     "pitch_bend": false
 }
