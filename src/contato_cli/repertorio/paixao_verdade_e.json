@@ -9,7 +9,7 @@
         [62, [["F#", 4]]],
         [180, [["G", 4]]]
     ],  
-    "accel_notes":[["F#", 2]],
+    "accel_notes":[["F#", 4]],
     "accel_delay": 3,                      
     "accel_sensitivity_+": 12000,  
     "accel_sensitivity_-": 12000,
