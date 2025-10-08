@@ -23,7 +23,6 @@ class Player:
         self.gyro = 0
         self.accel = 0
         self.touch = 0
-        self.current_gyro_notes = []
         self.last_gyro_notes_played = []
         self.last_accel_trigger_time = 0
         self.tones = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] # Notas musicais
@@ -31,14 +30,6 @@ class Player:
 
     def update(self) -> None:
         """Recebe input dos parâmetros do dispositivos e acionar eventos MIDI"""
-        # ANGLE
-        for notes in self.config.get('angle_notes_list'): # [0, [['C', 3], ['E', 3], ['G', 3]]]
-            notes_list = notes[1] 
-            if self.gyro <= notes[0]: # TODO: testar limite infinito das notas
-                break
-
-        self.current_gyro_notes = self.convert_to_midi_codes(notes_list) 
-        # current_gyro_notes = [36, 40, 43]
 
         # ACCEL
         if time.time() - self.last_accel_trigger_time > self.config.get('accel_delay'):
@@ -59,13 +50,13 @@ class Player:
             if not self.touch_flag:
                 if self.config.get('legato'):
                     self.stop_notes('gyro', self.last_gyro_notes_played)
-                self.play_notes('gyro', self.current_gyro_notes)
+                self.play_notes('gyro', self.current_gyro_notes())
                 self.touch_flag = True 
     
             # Decorrer do toque
-            if self.current_gyro_notes != self.last_gyro_notes_played:
+            if self.current_gyro_notes() != self.last_gyro_notes_played:
                 self.stop_notes('gyro', self.last_gyro_notes_played)
-                self.play_notes('gyro', self.current_gyro_notes)
+                self.play_notes('gyro', self.current_gyro_notes())
         else:
             # Liberação do toque
             if self.touch_flag:
@@ -82,6 +73,13 @@ class Player:
                     if self.tones[i] == note[0]: # if 'C' == 'C' 
                         midi_codes.append( note[1] * len(self.tones) + i) # 3 * 12 + 0
         return midi_codes # [36, 40, 43]
+    
+    def current_gyro_notes(self) -> list[int]:
+        for notes in self.config.get('angle_notes_list'): # [0, [['C', 3], ['E', 3], ['G', 3]]]
+            notes_list = notes[1] 
+            if self.gyro <= notes[0]: # TODO: testar limite infinito das notas
+                break
+        return self.convert_to_midi_codes(notes_list) 
 
     def play_notes(self, device, note_codes_list) -> None:
         """Recebe uma lista de códigos de nota MIDI e as aciona"""
