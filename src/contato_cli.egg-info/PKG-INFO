@@ -1,0 +1,13 @@
+Metadata-Version: 2.4
+Name: contato_cli
+Version: 0.0.2
+Author-email: Arthur Ranquine <aranquine@ufrj.br>
+Maintainer-email: Arthur Ranquine <aranquine@ufrj.br>, Carol Breder <c.brederfigueiredo@gmail.com>
+License-File: LICENSE
+Requires-Dist: asyncclick
+Requires-Dist: python-rtmidi
+Requires-Dist: bleak
+Requires-Dist: pytemidi
+Requires-Dist: pyserial
+Requires-Dist: anyio
+Dynamic: license-file
