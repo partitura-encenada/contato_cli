@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling >= 1.26"]
-build-backend = "hatchling.build"
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "contato_cli"
@@ -10,7 +10,8 @@ dependencies = [
   "python-rtmidi",
   "bleak",
   "pytemidi",
-  "pyserial"
+  "pyserial",
+  "anyio"
 ]
 authors = [
   {name = "Arthur Ranquine", email = "aranquine@ufrj.br"}

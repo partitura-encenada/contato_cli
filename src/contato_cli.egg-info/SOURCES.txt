@@ -1,0 +1,14 @@
+LICENSE
+README.md
+pyproject.toml
+src/contato_cli/__init__.py
+src/contato_cli/__main__.py
+src/contato_cli/player.py
+src/contato_cli.egg-info/PKG-INFO
+src/contato_cli.egg-info/SOURCES.txt
+src/contato_cli.egg-info/dependency_links.txt
+src/contato_cli.egg-info/entry_points.txt
+src/contato_cli.egg-info/requires.txt
+src/contato_cli.egg-info/top_level.txt
+src/contato_cli/repertorio/genesis2_e.py
+src/contato_cli/util/mac_contato_dict.py
