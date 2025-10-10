@@ -1,2 +1,0 @@
-[console_scripts]
-contato = contato_cli.__main__:cli

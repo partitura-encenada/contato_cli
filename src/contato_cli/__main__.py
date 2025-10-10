@@ -1,8 +1,8 @@
 import serial
 from bleak import BleakClient, BleakScanner # biblioteca de BLE
+from bleak.backends.characteristic import BleakGATTCharacteristic
 import asyncio # biblioteca bleak requer asyncio
 import asyncclick as click
-from bleak.backends.characteristic import BleakGATTCharacteristic
 from contato_cli.util.mac_contato_dict import mac_contato_dict
 from contato_cli.player import Player # Classe de interação MIDI com o loopMIDI
 
