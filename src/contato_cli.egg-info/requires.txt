@@ -1,6 +1,0 @@
-asyncclick
-python-rtmidi
-bleak
-pytemidi
-pyserial
-anyio
