@@ -77,12 +77,13 @@ class Player:
     def current_gyro_notes(self) -> list[int]:
         for notes in self.config.get('angle_notes_list'): # [0, [['C', 3], ['E', 3], ['G', 3]]]
             notes_list = notes[1] 
-            if self.gyro <= notes[0]: # TODO: testar limite infinito das notas
+            if self.gyro * self.config.get('hand') <= notes[0]: # TODO: testar limite infinito das notas
                 break
         return self.convert_to_midi_codes(notes_list) 
 
     def play_notes(self, device, note_codes_list) -> None:
         """Recebe uma lista de códigos de nota MIDI e as aciona"""
+        
         for note_code in note_codes_list: # [36, 40, 43] 
             match device:
                 case 'gyro':
