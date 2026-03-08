@@ -2,19 +2,14 @@ import sys
 import serial
 from functools import partial
 
-from bleak import BleakClient, BleakScanner # biblioteca de BLE
-import asyncio # biblioteca bleak requer asyncio
+from bleak import BleakClient, BleakScanner
+import asyncio
 import asyncclick as click
-# from cloup import command, option
-# from cloup.constraints import constraint, mutually_exclusive
 from bleak.backends.characteristic import BleakGATTCharacteristic
-# import rtmidi.midiutil
 
 from contato_cli.mac_contato_dict import mac_contato_dict
-# Classe de interação MIDI com o loopMIDI
 from contato_cli.player import Player
 
-# Consultar no código embarcado
 TOUCH_CHARACTERISTIC_UUID = '62c84a29-95d6-44e4-a13d-a9372147ce21'
 GYRO_CHARACTERISTIC_UUID = '9b7580ed-9fc2-41e7-b7c2-f63de01f0692'
 ACCEL_CHARACTERISTIC_UUID = 'f62094cf-21a7-4f71-bb3f-5a5b17bb134e' 
@@ -32,7 +27,6 @@ async def scan():
         
 @cli.command()
 @click.argument('performance')
-#TODO: Tornar opções mutualmente exclusivas
 @click.option('--id')
 @click.option('--dispositivo', '-d', default = 'Contato')
 @click.option('--com')
@@ -43,7 +37,6 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
     else:
         player = Player(performance)
 
-    # Conexão BLE
     if not com:
         click.echo('Scan')
         if id:
@@ -69,7 +62,6 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
             while True:
                 await asyncio.sleep(1)
                 
-    #Conexão porta COM
     else:
         serial_port = serial.Serial(port = 'COM' + com, 
                                     baudrate=115200,
@@ -79,16 +71,19 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
             while True:
                 if(serial_port.in_waiting > 0):
                     serial_string = serial_port.readline()
-                    sensor_data_list = (serial_string.decode('utf-8')).split('/')
-                    id = int(sensor_data_list[0])
-                    player.set_gyro(int(sensor_data_list[1])) #TODO: Ver se gyro pode ser um int
-                    player.set_accel(float(sensor_data_list[2]))
-                    player.set_touch(int(sensor_data_list[3]))
-
-                    # Output
-                    click.echo(f'{id} gyro: {player.gyro} acc: {player.accel} t: {player.touch}') 
-        except:
-            click.echo('Porta COM não encontrada')
+                    try:
+                        sensor_data_list = (serial_string.decode('utf-8')).split('/')
+                        if len(sensor_data_list) < 5 or sensor_data_list[0].strip() != 'D':
+                            continue
+                        id = int(sensor_data_list[1])
+                        player.set_gyro(int(sensor_data_list[2]))
+                        player.set_accel(float(sensor_data_list[3]))
+                        player.set_touch(int(sensor_data_list[4]))
+                        click.echo(f'{id} gyro: {player.gyro} acc: {player.accel} t: {player.touch}')
+                    except (ValueError, IndexError):
+                        continue
+        except Exception as e:
+            click.echo(f'Erro: {e}')
             player.reset_channels()
     
 if __name__ == "__main__":
