@@ -4,20 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "contato_cli"
-version = "0.0.2"
+version = "0.0.1"
 dependencies = [
   "asyncclick",
   "python-rtmidi",
   "bleak",
   "pytemidi",
-  "pyserial"
-]
-authors = [
-  {name = "Arthur Ranquine", email = "aranquine@ufrj.br"}
-]
-maintainers = [
-  {name = "Arthur Ranquine", email = "aranquine@ufrj.br"},
-  {name = "Carol Breder", email = "c.brederfigueiredo@gmail.com"}
+  "pyserial",
+  "cloup"
 ]
 
 [project.scripts]
