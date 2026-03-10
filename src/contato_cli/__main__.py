@@ -1,9 +1,8 @@
 import serial
-from functools import partial
 from bleak import BleakClient, BleakScanner # biblioteca de BLE
+from bleak.backends.characteristic import BleakGATTCharacteristic
 import asyncio # biblioteca bleak requer asyncio
 import asyncclick as click
-from bleak.backends.characteristic import BleakGATTCharacteristic
 from contato_cli.util.mac_contato_dict import mac_contato_dict
 from contato_cli.player import Player # Classe de interação MIDI com o loopMIDI
 
@@ -40,6 +39,7 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
 
     # Conexão BLE
     if not com:
+        click.echo('Scan')
         def bleak_gyro_callback(characteristic: BleakGATTCharacteristic, data: bytearray): 
             player.gyro = int.from_bytes(data, 'little', signed=True)
             player.update()
@@ -53,7 +53,6 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                 device = await BleakScanner.find_device_by_address(id)
             elif dispositivo:
                 device = await BleakScanner.find_device_by_name(dispositivo)
-            click.echo('Scan')
             if device is None:
                 click.echo("Nenhum dispositivo encontrado, aguarde a procura novamente")
                 await asyncio.sleep(30)
