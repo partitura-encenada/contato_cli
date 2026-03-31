@@ -10,7 +10,7 @@
     ],  
     "accel_notes":[["G#", 5]],
     "accel_delay": 2,                      
-    "accel_sensitivity_+": 8000,  
-    "accel_sensitivity_-": 8000,
+    "accel_sensitivity_+": 12000,  
+    "accel_sensitivity_-": 12000,
     "pitch_bend": false
 }
