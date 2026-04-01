@@ -11,11 +11,9 @@ class Player:
         def open_port_by_name(name):
             midiout = rtmidi.MidiOut()
             ports = midiout.get_ports()
-            print(f'[MIDI] Portas disponíveis: {ports}')
             for i, port in enumerate(ports):
                 if name.lower() in port.lower():
                     midiout.open_port(i)
-                    print(f'[MIDI] Porta aberta: {port} (índice {i})')
                     return midiout
             raise RuntimeError(
                 f'Porta MIDI "{name}" não encontrada. '
@@ -26,7 +24,6 @@ class Player:
         if not daw:
             midiout = rtmidi.MidiOut()
             ports = midiout.get_ports()
-            print(f'[MIDI] Portas disponíveis: {ports}')
             if len(ports) < 1:
                 raise RuntimeError('Nenhuma porta MIDI disponível.')
             midiout.open_port(0)

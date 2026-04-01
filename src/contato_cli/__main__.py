@@ -73,12 +73,12 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                     serial_string = serial_port.readline()
                     try:
                         sensor_data_list = (serial_string.decode('utf-8')).split('/')
-                        if len(sensor_data_list) < 5 or sensor_data_list[0].strip() != 'D':
+                        if len(sensor_data_list) < 4:
                             continue
-                        id = int(sensor_data_list[1])
-                        player.set_gyro(int(sensor_data_list[2]))
-                        player.set_accel(float(sensor_data_list[3]))
-                        player.set_touch(int(sensor_data_list[4]))
+                        id = int(sensor_data_list[0].strip())
+                        player.set_gyro(int(sensor_data_list[1]))
+                        player.set_accel(float(sensor_data_list[2]))
+                        player.set_touch(int(sensor_data_list[3]))
                         click.echo(f'{id} gyro: {player.gyro} acc: {player.accel} t: {player.touch}')
                     except (ValueError, IndexError):
                         continue
