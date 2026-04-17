@@ -67,6 +67,7 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                                     baudrate=115200,
                                     timeout=2, 
                                     stopbits=serial.STOPBITS_ONE)
+        serial_port.reset_input_buffer()  # limpa buffer acumulado ao conectar
         try:
             while True:
                 if(serial_port.in_waiting > 0):
@@ -85,6 +86,11 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
         except Exception as e:
             click.echo(f'Erro: {e}')
             player.reset_channels()
+        finally:
+            if serial_port.is_open:
+                serial_port.reset_input_buffer()  # limpa buffer ao fechar
+                serial_port.close()
+                click.echo(f'Porta COM{com} fechada.')
     
 if __name__ == "__main__":
     cli()
