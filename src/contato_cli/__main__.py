@@ -81,14 +81,14 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                         player.set_accel(float(sensor_data_list[2]))
                         player.set_touch(int(sensor_data_list[3]))
                         click.echo(f'{id} gyro: {player.gyro} acc: {player.accel} t: {player.touch}')
-                    except (ValueError, IndexError):
+                    except (ValueError, IndexError, UnicodeDecodeError):
                         continue
         except Exception as e:
             click.echo(f'Erro: {e}')
             player.reset_channels()
         finally:
             if serial_port.is_open:
-                serial_port.reset_input_buffer()  # limpa buffer ao fechar
+                # serial_port.reset_input_buffer()  # limpa buffer ao fechar
                 serial_port.close()
                 click.echo(f'Porta COM{com} fechada.')
     
