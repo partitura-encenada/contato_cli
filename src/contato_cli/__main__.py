@@ -24,16 +24,16 @@ async def scan():
     devices = await BleakScanner.discover()
     for d in devices:
         click.echo(d)
-        
+
 @cli.command()
 @click.argument('performance')
 @click.option('--id')
-@click.option('--dispositivo', '-d', default = 'Contato')
+@click.option('--dispositivo', '-d', default='Contato')
 @click.option('--com')
-@click.option('--daw', is_flag = True)
+@click.option('--daw', is_flag=True)
 async def connect(performance, id, dispositivo, com, daw) -> None:
     if daw:
-        player = Player(performance, daw = True)
+        player = Player(performance, daw=True)
     else:
         player = Player(performance)
 
@@ -41,14 +41,14 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
         click.echo('Scan')
         if id:
             mac_contato_dict.get(id)
-            if mac_contato_dict.get(id) == None:
-                raise Exception 
+            if mac_contato_dict.get(id) is None:
+                raise Exception
             device = await BleakScanner.find_device_by_address(mac_contato_dict.get(id))
         elif dispositivo:
             device = await BleakScanner.find_device_by_name(dispositivo)
         else:
             device = await BleakScanner.find_device_by_name('Contato')
-        
+
         if device is None:
             click.echo(f'Não foi possível encontrar dispositivo de nome: {dispositivo}')
             return
@@ -61,43 +61,72 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
             await client.start_notify(TOUCH_CHARACTERISTIC_UUID, partial(bleak_touch_callback, player))
             while True:
                 await asyncio.sleep(1)
-                
+
     else:
-        serial_port = serial.Serial(port = 'COM' + com, 
-                                    baudrate=115200,
-                                    timeout=2, 
-                                    stopbits=serial.STOPBITS_ONE)
-        serial_port.reset_input_buffer()  # limpa buffer acumulado ao conectar
+        serial_port = serial.Serial(
+            port='COM' + com,
+            baudrate=115200,
+            timeout=2,
+            stopbits=serial.STOPBITS_ONE
+        )
+
+        # Limpa dados antigos acumulados na porta COM ao conectar.
+        serial_port.reset_input_buffer()
+
         try:
             while True:
-                if(serial_port.in_waiting > 0):
+                if serial_port.in_waiting > 0:
                     serial_string = serial_port.readline()
+
                     try:
-                        sensor_data_list = (serial_string.decode('utf-8')).split('/')
+                        # Decodifica ignorando bytes corrompidos.
+                        linha = serial_string.decode('utf-8', errors='ignore').strip()
+                        sensor_data_list = linha.split('/')
+
+                        # Esperado: id/gyro/accel/touch
                         if len(sensor_data_list) < 4:
                             continue
+
                         id = int(sensor_data_list[0].strip())
                         player.set_gyro(int(sensor_data_list[1]))
                         player.set_accel(float(sensor_data_list[2]))
                         player.set_touch(int(sensor_data_list[3]))
+
                         click.echo(f'{id} gyro: {player.gyro} acc: {player.accel} t: {player.touch}')
-                    except (ValueError, IndexError, UnicodeDecodeError):
+
+                    # Ignora pacotes malformados sem encerrar o programa.
+                    except (ValueError, IndexError):
                         continue
+
+        # Ctrl+C: tenta desligar as notas/canais MIDI de forma limpa.
+        except KeyboardInterrupt:
+            click.echo('Encerrando...')
+            try:
+                player.reset_channels()
+            except Exception as reset_error:
+                click.echo(f'Não foi possível resetar MIDI: {type(reset_error).__name__}: {reset_error}')
+
+        # Qualquer outro erro: mostra o erro real e tenta resetar o MIDI sem travar.
         except Exception as e:
-            click.echo(f'Erro: {e}')
-            player.reset_channels()
+            click.echo(f'Erro: {type(e).__name__}: {e}')
+            try:
+                player.reset_channels()
+            except Exception as reset_error:
+                click.echo(f'Erro ao resetar MIDI ignorado: {type(reset_error).__name__}: {reset_error}')
+
         finally:
             if serial_port.is_open:
-                # serial_port.reset_input_buffer()  # limpa buffer ao fechar
                 serial_port.close()
                 click.echo(f'Porta COM{com} fechada.')
-    
+
 if __name__ == "__main__":
     cli()
 
 def bleak_touch_callback(player, characteristic: BleakGATTCharacteristic, data: bytearray): 
     player.set_touch(int.from_bytes(data, 'little', signed=False))
+
 def bleak_gyro_callback(player, characteristic: BleakGATTCharacteristic, data: bytearray): 
     player.set_gyro(int.from_bytes(data, 'little', signed=True))
+
 def bleak_accel_callback(player, characteristic: BleakGATTCharacteristic, data: bytearray): 
     player.set_accel(int.from_bytes(data, 'little', signed=True))
