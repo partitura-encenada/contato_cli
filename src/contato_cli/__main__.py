@@ -79,11 +79,9 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                     serial_string = serial_port.readline()
 
                     try:
-                        # Decodifica ignorando bytes corrompidos.
                         linha = serial_string.decode('utf-8', errors='ignore').strip()
                         sensor_data_list = linha.split('/')
 
-                        # Esperado: id/gyro/accel/touch
                         if len(sensor_data_list) < 4:
                             continue
 
@@ -94,19 +92,20 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
 
                         click.echo(f'{id} gyro: {player.gyro} acc: {player.accel} t: {player.touch}')
 
-                    # Ignora pacotes malformados sem encerrar o programa.
                     except (ValueError, IndexError):
                         continue
 
-        # Ctrl+C: tenta desligar as notas/canais MIDI de forma limpa.
         except KeyboardInterrupt:
             click.echo('Encerrando...')
+            try:
+                serial_port.write(b'STOP\n')  # avisa a base para parar de printar
+            except Exception:
+                pass
             try:
                 player.reset_channels()
             except Exception as reset_error:
                 click.echo(f'Não foi possível resetar MIDI: {type(reset_error).__name__}: {reset_error}')
 
-        # Qualquer outro erro: mostra o erro real e tenta resetar o MIDI sem travar.
         except Exception as e:
             click.echo(f'Erro: {type(e).__name__}: {e}')
             try:
