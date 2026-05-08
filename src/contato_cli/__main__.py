@@ -1,6 +1,9 @@
 import sys
 import serial
+import json
 import time
+from pathlib import Path
+from serial.tools import list_ports
 from functools import partial
 
 from bleak import BleakClient, BleakScanner
@@ -15,6 +18,24 @@ TOUCH_CHARACTERISTIC_UUID = '62c84a29-95d6-44e4-a13d-a9372147ce21'
 GYRO_CHARACTERISTIC_UUID = '9b7580ed-9fc2-41e7-b7c2-f63de01f0692'
 ACCEL_CHARACTERISTIC_UUID = 'f62094cf-21a7-4f71-bb3f-5a5b17bb134e' 
 
+PORTAS_IDS_FILE = Path(__file__).parent / 'portas_ids.json'
+
+if not PORTAS_IDS_FILE.exists():
+    PORTAS_IDS_FILE.write_text("{}", encoding='utf-8')
+
+def carregar_portas_ids():
+    try:
+        return json.loads(PORTAS_IDS_FILE.read_text(encoding='utf-8'))
+    except Exception:
+        return {}
+
+def salvar_portas_ids(mapa):
+    PORTAS_IDS_FILE.write_text(
+        json.dumps(mapa, indent=2, ensure_ascii=False),
+        encoding='utf-8'
+    )
+
+
 @click.group()
 def cli() -> None:
     pass
@@ -25,6 +46,63 @@ async def scan():
     devices = await BleakScanner.discover()
     for d in devices:
         click.echo(d)
+
+@cli.command(name='scan-com')
+@click.option('--tempo', default=2)
+async def scan_com(tempo):
+    mapa = {}
+
+    for porta in list_ports.comports():
+        try:
+            serial_port = serial.Serial(
+                port=porta.device,
+                baudrate=115200,
+                timeout=0.2,
+                stopbits=serial.STOPBITS_ONE
+            )
+
+            time.sleep(2)
+            serial_port.reset_input_buffer()
+
+            for _ in range(3):
+                serial_port.write(b'START\n')
+                time.sleep(0.1)
+
+            inicio = time.time()
+
+            while time.time() - inicio < tempo:
+                if serial_port.in_waiting > 0:
+                    linha = serial_port.readline().decode(
+                        'utf-8',
+                        errors='ignore'
+                    ).strip()
+
+                    partes = linha.split('/')
+
+                    if len(partes) >= 4:
+                        try:
+                            id_lido = int(partes[0].strip())
+                            mapa[str(id_lido)] = porta.device.replace('COM', '')
+                            break
+                        except ValueError:
+                            continue
+
+            try:
+                serial_port.write(b'STOP\n')
+            except Exception:
+                pass
+
+            serial_port.close()
+
+        except Exception:
+            pass
+
+    salvar_portas_ids(mapa)
+
+    click.echo(f'Mapa salvo em: {PORTAS_IDS_FILE}')
+
+    for id_lido, com in sorted(mapa.items(), key=lambda item: int(item[0])):
+        click.echo(f'ID {id_lido} -> COM{com}')
 
 @cli.command()
 @click.argument('performance')
@@ -37,6 +115,17 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
         player = Player(performance, daw=True)
     else:
         player = Player(performance)
+
+    if id and not com:
+        mapa = carregar_portas_ids()
+        com = mapa.get(str(id))
+
+        if not com:
+            click.echo(f'ID {id} não encontrado no arquivo {PORTAS_IDS_FILE}.')
+            click.echo('Rode primeiro: contato scan-com')
+            return
+
+        click.echo(f'Usando ID {id} na COM{com}')
 
     if not com:
         click.echo('Scan')
@@ -74,10 +163,10 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
         # Espera o ESP32 reiniciar ao abrir a COM.
         time.sleep(1)
 
-        # Limpa lixo acumulado do boot.
+        # Limpa dados antigos acumulados na porta COM ao conectar.
         serial_port.reset_input_buffer()
 
-        # Envia START algumas vezes para garantir que a base receba.
+        # Avisa a base que o contato_cli começou a usar essa COM.
         for _ in range(3):
             serial_port.write(b'START\n')
             time.sleep(0.1)
@@ -123,7 +212,7 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                 click.echo(f'Erro ao resetar MIDI ignorado: {type(reset_error).__name__}: {reset_error}')
 
         finally:
-            # Avisa a base para parar de imprimir.
+            # Garante STOP antes de fechar.
             try:
                 serial_port.write(b'STOP\n')
             except Exception:
