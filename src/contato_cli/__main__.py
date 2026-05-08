@@ -48,16 +48,21 @@ async def scan():
         click.echo(d)
 
 @cli.command(name='scan-com')
-@click.option('--tempo', default=2)
+@click.option('--tempo', default=1)
 async def scan_com(tempo):
     mapa = {}
 
     for porta in list_ports.comports():
+        click.echo(f'Testando {porta.device}...')
+
+        serial_port = None
+
         try:
             serial_port = serial.Serial(
                 port=porta.device,
                 baudrate=115200,
-                timeout=0.2,
+                timeout=0.1,
+                write_timeout=0.2,
                 stopbits=serial.STOPBITS_ONE
             )
 
@@ -71,35 +76,44 @@ async def scan_com(tempo):
             inicio = time.time()
 
             while time.time() - inicio < tempo:
-                if serial_port.in_waiting > 0:
-                    linha = serial_port.readline().decode(
-                        'utf-8',
-                        errors='ignore'
-                    ).strip()
+                linha = serial_port.readline().decode(
+                    'utf-8',
+                    errors='ignore'
+                ).strip()
 
-                    partes = linha.split('/')
+                if not linha:
+                    continue
 
-                    if len(partes) >= 4:
-                        try:
-                            id_lido = int(partes[0].strip())
-                            mapa[str(id_lido)] = porta.device.replace('COM', '')
-                            break
-                        except ValueError:
-                            continue
+                partes = linha.split('/')
+
+                if len(partes) >= 4:
+                    try:
+                        id_lido = int(partes[0].strip())
+                        mapa[str(id_lido)] = porta.device.replace('COM', '')
+                        click.echo(f'Encontrado: ID {id_lido} -> {porta.device}')
+                        break
+                    except ValueError:
+                        continue
 
             try:
                 serial_port.write(b'STOP\n')
             except Exception:
                 pass
 
-            serial_port.close()
+        except Exception as e:
+            click.echo(f'Ignorando {porta.device}: {type(e).__name__}')
 
-        except Exception:
-            pass
+        finally:
+            if serial_port and serial_port.is_open:
+                serial_port.close()
 
     salvar_portas_ids(mapa)
 
     click.echo(f'Mapa salvo em: {PORTAS_IDS_FILE}')
+
+    if not mapa:
+        click.echo('Nenhum ID encontrado.')
+        return
 
     for id_lido, com in sorted(mapa.items(), key=lambda item: int(item[0])):
         click.echo(f'ID {id_lido} -> COM{com}')
