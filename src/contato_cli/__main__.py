@@ -1,5 +1,6 @@
 import sys
 import serial
+import time
 from functools import partial
 
 from bleak import BleakClient, BleakScanner
@@ -66,12 +67,20 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
         serial_port = serial.Serial(
             port='COM' + com,
             baudrate=115200,
-            timeout=2,
+            timeout=1,
             stopbits=serial.STOPBITS_ONE
         )
 
-        # Limpa dados antigos acumulados na porta COM ao conectar.
+        # Espera o ESP32 reiniciar ao abrir a COM.
+        time.sleep(1)
+
+        # Limpa lixo acumulado do boot.
         serial_port.reset_input_buffer()
+
+        # Envia START algumas vezes para garantir que a base receba.
+        for _ in range(3):
+            serial_port.write(b'START\n')
+            time.sleep(0.1)
 
         try:
             while True:
@@ -114,6 +123,12 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                 click.echo(f'Erro ao resetar MIDI ignorado: {type(reset_error).__name__}: {reset_error}')
 
         finally:
+            # Avisa a base para parar de imprimir.
+            try:
+                serial_port.write(b'STOP\n')
+            except Exception:
+                pass
+
             if serial_port.is_open:
                 serial_port.close()
                 click.echo(f'Porta COM{com} fechada.')
