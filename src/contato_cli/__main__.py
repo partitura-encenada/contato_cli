@@ -1,6 +1,8 @@
 import sys
 import serial
 import time
+from serial.tools import list_ports
+from pathlib import Path
 from functools import partial
 
 from bleak import BleakClient, BleakScanner
@@ -9,11 +11,14 @@ import asyncclick as click
 from bleak.backends.characteristic import BleakGATTCharacteristic
 
 from contato_cli.mac_contato_dict import mac_contato_dict
+from contato_cli.com_contato_dict import com_contato_dict
 from contato_cli.player import Player
 
 TOUCH_CHARACTERISTIC_UUID = '62c84a29-95d6-44e4-a13d-a9372147ce21'
 GYRO_CHARACTERISTIC_UUID = '9b7580ed-9fc2-41e7-b7c2-f63de01f0692'
 ACCEL_CHARACTERISTIC_UUID = 'f62094cf-21a7-4f71-bb3f-5a5b17bb134e' 
+
+COM_CONTATO_DICT_FILE = Path(__file__).parent / 'com_contato_dict.py'
 
 @click.group()
 def cli() -> None:
@@ -26,6 +31,72 @@ async def scan():
     for d in devices:
         click.echo(d)
 
+@cli.command(name='scan-com')
+@click.option('--tempo', default=1)
+async def scan_com(tempo):
+    mapa = {}
+
+    for porta in list_ports.comports():
+        click.echo(f'Testando {porta.device}...')
+        serial_port = None
+
+        try:
+            serial_port = serial.Serial(
+                port=porta.device,
+                baudrate=115200,
+                timeout=0.1,
+                write_timeout=0.2,
+                stopbits=serial.STOPBITS_ONE
+            )
+
+            time.sleep(1)
+            serial_port.reset_input_buffer()
+
+            for _ in range(3):
+                serial_port.write(b'START\n')
+                time.sleep(0.1)
+
+            inicio = time.time()
+
+            while time.time() - inicio < tempo:
+                linha = serial_port.readline().decode(
+                    'utf-8',
+                    errors='ignore'
+                ).strip()
+
+                if not linha:
+                    continue
+
+                partes = linha.split('/')
+
+                if len(partes) >= 4:
+                    try:
+                        id_lido = int(partes[0].strip())
+                        mapa[str(id_lido)] = porta.device.replace('COM', '')
+                        click.echo(f'ID {id_lido} encontrado em {porta.device}')
+                        break
+                    except ValueError:
+                        continue
+
+            try:
+                serial_port.write(b'STOP\n')
+            except Exception:
+                pass
+
+        except Exception as e:
+            click.echo(f'Ignorando {porta.device}: {type(e).__name__}')
+
+        finally:
+            if serial_port and serial_port.is_open:
+                serial_port.close()
+
+    with open(COM_CONTATO_DICT_FILE, 'w', encoding='utf-8') as f:
+        f.write('com_contato_dict = ')
+        f.write(repr(mapa))
+        f.write('\n')
+
+    click.echo(f'Arquivo atualizado: {COM_CONTATO_DICT_FILE}')
+
 @cli.command()
 @click.argument('performance')
 @click.option('--id')
@@ -37,6 +108,15 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
         player = Player(performance, daw=True)
     else:
         player = Player(performance)
+
+    # Se passar --id sem --com, usa o dicionário salvo pelo scan-com.
+    if id and not com:
+        com = com_contato_dict.get(str(id))
+
+        if not com:
+            click.echo(f'ID {id} não encontrado em com_contato_dict.py')
+            click.echo('Rode primeiro: contato scan-com')
+            return
 
     if not com:
         click.echo('Scan')

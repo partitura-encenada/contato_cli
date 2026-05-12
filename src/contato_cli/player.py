@@ -40,6 +40,7 @@ class Player:
 
         self.current_gyro_notes = []
         self.last_gyro_notes_played_list = []
+        self.sustain_gyro_notes_played_list = []
         self.last_accel_trigger_time = 0
         self.tones = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
@@ -83,7 +84,7 @@ class Player:
     def set_accel(self, accel) -> None:
         self.accel = accel
         if time.time() - self.last_accel_trigger_time > self.config.get('accel_delay'):
-            if abs(self.accel) > self.config.get('accel_sensitivity_+') or abs(self.accel) > self.config.get('accel_sensitivity_-'):
+            if self.accel > self.config.get('accel_sensitivity_+') or self.accel < -self.config.get('accel_sensitivity_-'):
                 if self.config.get('legato'):
                     self.stop_notes('gyro', self.last_gyro_notes_played_list)
                 self.play_notes('accel', self.convert_to_midi_codes(self.config.get('accel_notes')))
@@ -99,19 +100,42 @@ class Player:
             if not self.touch_flag:
                 if self.config.get('legato'):
                     self.stop_notes('gyro', self.last_gyro_notes_played_list)
+
                 if self.touch == 2:
                     self.pianissimo_flag = True
                 else:
                     self.pianissimo_flag = False
+
                 self.play_notes('gyro', self.current_gyro_notes)
+
+                if self.config.get('sustain'):
+                    self.sustain_gyro_notes_played_list += self.current_gyro_notes
+
                 self.touch_flag = True
             if self.current_gyro_notes != self.last_gyro_notes_played_list:
-                self.stop_notes('gyro', self.last_gyro_notes_played_list)
-                self.play_notes('gyro', self.current_gyro_notes)
+                if self.config.get('sustain'):
+                    self.play_notes('gyro', self.current_gyro_notes)
+                    self.sustain_gyro_notes_played_list += self.current_gyro_notes
+                else:
+                    self.stop_notes('gyro', self.last_gyro_notes_played_list)
+                    self.play_notes('gyro', self.current_gyro_notes)
         else:
             if self.touch_flag:
-                if not self.config.get('legato'):
-                    self.stop_notes('gyro', self.last_gyro_notes_played_list)
+
+                if self.config.get('sustain'):
+                    self.stop_notes(
+                        'gyro',
+                        list(set(self.sustain_gyro_notes_played_list))
+                    )
+
+                    self.sustain_gyro_notes_played_list = []
+
+                elif not self.config.get('legato'):
+                    self.stop_notes(
+                        'gyro',
+                        self.last_gyro_notes_played_list
+                    )
+
                 self.touch_flag = False
 
     def change_program(self, n):
