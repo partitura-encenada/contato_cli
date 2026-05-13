@@ -205,13 +205,17 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
         finally:
             # Avisa a base para parar de imprimir.
             try:
-                serial_port.write(b'STOP\n')
+                for _ in range(5):
+                    serial_port.write(b'STOP\n')
+                    serial_port.flush()
+                    time.sleep(0.1)
             except Exception:
                 pass
 
+            time.sleep(0.3)
+
             if serial_port.is_open:
                 serial_port.close()
-                click.echo(f'Porta COM{com} fechada.')
 
 if __name__ == "__main__":
     cli()
