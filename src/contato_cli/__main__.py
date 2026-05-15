@@ -49,11 +49,10 @@ async def scan_com(tempo):
                 stopbits=serial.STOPBITS_ONE
             )
 
-            time.sleep(1)
             serial_port.reset_input_buffer()
 
             for _ in range(3):
-                serial_port.write(b'START\n')
+                serial_port.write(b'ID?\n')
                 time.sleep(0.1)
 
             inicio = time.time()
@@ -69,19 +68,34 @@ async def scan_com(tempo):
 
                 partes = linha.split('/')
 
-                if len(partes) >= 4:
+                # formato ID/3
+                if len(partes) == 2 and partes[0] == 'ID':
                     try:
-                        id_lido = int(partes[0].strip())
+                        id_lido = int(partes[1].strip())
+
                         mapa[str(id_lido)] = porta.device.replace('COM', '')
+
                         click.echo(f'ID {id_lido} encontrado em {porta.device}')
+
                         break
+
                     except ValueError:
                         continue
 
-            try:
-                serial_port.write(b'STOP\n')
-            except Exception:
-                pass
+                # formato normal id/gyro/accel/touch
+                elif len(partes) >= 4:
+                    try:
+                        id_lido = int(partes[0].strip())
+
+                        mapa[str(id_lido)] = porta.device.replace('COM', '')
+
+                        click.echo(f'ID {id_lido} encontrado em {porta.device}')
+
+                        break
+
+                    except ValueError:
+                        continue
+
 
         except Exception as e:
             click.echo(f'Ignorando {porta.device}: {type(e).__name__}')
