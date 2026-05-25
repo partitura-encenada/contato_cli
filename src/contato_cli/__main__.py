@@ -37,6 +37,14 @@ async def scan_com(tempo):
     mapa = {}
 
     for porta in list_ports.comports():
+
+        # ignora portas Bluetooth
+        descricao = (porta.description or '').lower()
+        hwid = (porta.hwid or '').lower()
+
+        if 'bluetooth' in descricao or 'bth' in hwid:
+            continue
+
         click.echo(f'Testando {porta.device}...')
         serial_port = None
 
