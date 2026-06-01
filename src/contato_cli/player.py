@@ -83,16 +83,40 @@ class Player:
 
     def set_accel(self, accel) -> None:
         self.accel = accel
-        if time.time() - self.last_accel_trigger_time > self.config.get('accel_delay'):
-            if self.accel > self.config.get('accel_sensitivity_+') or self.accel < -self.config.get('accel_sensitivity_-'):
-                if self.config.get('legato'):
-                    self.stop_notes('gyro', self.last_gyro_notes_played_list)
-                self.play_notes('accel', self.convert_to_midi_codes(self.config.get('accel_notes')))
-                self.last_accel_trigger_time = time.time()
-                self.accel_flag = True
+
+        if self.config.get('modo_gate', False):
+            limite = (
+                self.accel > self.config.get('accel_sensitivity_+')
+                or
+                self.accel < -self.config.get('accel_sensitivity_-')
+            )
+
+            if not limite:
+                if not self.accel_flag:
+                    self.play_notes(
+                        'accel',
+                        self.convert_to_midi_codes(self.config.get('accel_notes'))
+                    )
+                    self.accel_flag = True
+
             elif self.accel_flag:
-                self.stop_notes('accel', self.convert_to_midi_codes(self.config.get('accel_notes')))
+                self.stop_notes(
+                    'accel',
+                    self.convert_to_midi_codes(self.config.get('accel_notes'))
+                )
                 self.accel_flag = False
+
+        else:
+            if time.time() - self.last_accel_trigger_time > self.config.get('accel_delay'):
+                if self.accel > self.config.get('accel_sensitivity_+') or self.accel < -self.config.get('accel_sensitivity_-'):
+                    if self.config.get('legato'):
+                        self.stop_notes('gyro', self.last_gyro_notes_played_list)
+                    self.play_notes('accel', self.convert_to_midi_codes(self.config.get('accel_notes')))
+                    self.last_accel_trigger_time = time.time()
+                    self.accel_flag = True
+                elif self.accel_flag:
+                    self.stop_notes('accel', self.convert_to_midi_codes(self.config.get('accel_notes')))
+                    self.accel_flag = False
 
     def set_touch(self, touch) -> None:
         self.touch = touch
