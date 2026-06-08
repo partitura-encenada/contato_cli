@@ -119,6 +119,39 @@ async def scan_com(tempo):
 
     click.echo(f'Arquivo atualizado: {COM_CONTATO_DICT_FILE}')
 
+
+@cli.command(name='scan-mac')
+@click.option('--id', required=True)
+async def scan_mac(id):
+    com = com_contato_dict.get(str(id))
+
+    if not com:
+        click.echo('ID nao encontrado. Rode scan-com primeiro.')
+        return
+
+    serial_port = serial.Serial(
+        port='COM' + com,
+        baudrate=115200,
+        timeout=5,
+        stopbits=serial.STOPBITS_ONE
+    )
+
+    time.sleep(1)
+    serial_port.reset_input_buffer()
+    serial_port.write(b'DISCOVER\n')
+
+    inicio = time.time()
+
+    while time.time() - inicio < 10:
+        linha = serial_port.readline().decode('utf-8', errors='ignore').strip()
+
+        if linha == 'MAC_SAVED':
+            click.echo(f'MAC salvo na base {id}')
+            break
+
+    serial_port.close()
+
+
 @cli.command()
 @click.argument('performance')
 @click.option('--id')
