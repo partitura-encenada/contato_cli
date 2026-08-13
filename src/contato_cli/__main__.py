@@ -218,10 +218,8 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
             time.sleep(0.1)
 
         try:
-            ultimo_dado = time.time()
             while True:
                 if serial_port.in_waiting > 0:
-                    ultimo_dado = time.time()
                     serial_string = serial_port.readline()
 
                     try:
@@ -240,11 +238,6 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
 
                     except (ValueError, IndexError):
                         continue
-
-                else:
-                    if time.time() - ultimo_dado > 0.1:
-                        player.reset_channels()
-                        ultimo_dado = time.time()
 
         except KeyboardInterrupt:
             click.echo('Encerrando...')
