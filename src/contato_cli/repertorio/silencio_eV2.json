@@ -1,0 +1,17 @@
+{
+    "midi_channel" : 9,
+    "legato": false,
+    "hand": 1,
+    "angle_notes_list": [
+        [-62, [["E", 3]]],
+        [-20, [["D", 3]]],
+        [20, [["C#", 3]]],
+        [62, [["B", 2]]],
+        [180, [["E", 2]]]
+    ],  
+    "accel_notes":[["E", 2]],
+    "accel_delay": 3,                      
+    "accel_sensitivity_+": 8000,  
+    "accel_sensitivity_-": 8000,
+    "pitch_bend": false
+}
