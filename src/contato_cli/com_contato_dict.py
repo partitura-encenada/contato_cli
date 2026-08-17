@@ -1,1 +1,1 @@
-com_contato_dict = {}
+com_contato_dict = {'3': '17', '4': '18', '5': '19', '8': '20'}
