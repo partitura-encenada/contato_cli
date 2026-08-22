@@ -20,6 +20,28 @@ ACCEL_CHARACTERISTIC_UUID = 'f62094cf-21a7-4f71-bb3f-5a5b17bb134e'
 
 COM_CONTATO_DICT_FILE = Path(__file__).parent / 'com_contato_dict.py'
 
+
+def hard_reset_esp32(serial_port):
+    """
+    Faz reset físico do ESP32 pelo circuito de auto-reset da DevKit.
+    RTS=True  -> EN fica LOW (reset)
+    RTS=False -> EN volta HIGH (executa o firmware)
+    DTR=False mantém GPIO0 HIGH para iniciar o programa normal,
+    e não entrar no bootloader.
+    """
+    try:
+        serial_port.dtr = False
+        serial_port.rts = True
+        time.sleep(0.15)
+        serial_port.rts = False
+        serial_port.dtr = False
+        time.sleep(1.0)
+        serial_port.reset_input_buffer()
+        return True
+    except Exception as e:
+        click.echo(f'Aviso: reset RTS/DTR falhou: {type(e).__name__}')
+        return False
+
 @click.group()
 def cli() -> None:
     pass
@@ -57,10 +79,12 @@ async def scan_com(tempo):
                 stopbits=serial.STOPBITS_ONE
             )
 
-            serial_port.reset_input_buffer()
+            # Se a base ficou travada após Ctrl+C, reinicia pelo EN via RTS.
+            hard_reset_esp32(serial_port)
 
             for _ in range(3):
                 serial_port.write(b'ID?\n')
+                serial_port.flush()
                 time.sleep(0.1)
 
             inicio = time.time()
@@ -206,15 +230,14 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
             stopbits=serial.STOPBITS_ONE
         )
 
-        # Espera o ESP32 reiniciar ao abrir a COM.
-        time.sleep(1)
-
-        # Limpa lixo acumulado do boot.
-        serial_port.reset_input_buffer()
+        # Reinicia fisicamente o ESP32 pelo circuito de auto-reset da DevKit.
+        # Isso equivale ao botão EN sem precisar tocar na placa.
+        hard_reset_esp32(serial_port)
 
         # Envia START algumas vezes para garantir que a base receba.
         for _ in range(3):
             serial_port.write(b'START\n')
+            serial_port.flush()
             time.sleep(0.1)
 
         try:
