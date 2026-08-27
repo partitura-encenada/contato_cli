@@ -10,6 +10,6 @@
     "accel_notes":[["C", 3]],
     "accel_delay": 1,                      
     "accel_sensitivity_+": 13000,  
-    "accel_sensitivity_-": 12000,
+    "accel_sensitivity_-": 13000,
     "pitch_bend": false
 }
