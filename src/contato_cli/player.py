@@ -36,12 +36,20 @@ class Player:
         # Sistema de flag assegura que condicionais só executem em mudanças de estado
         self.touch_flag = False
         self.accel_flag = False
+        self.accel_x_flag = False
+        self.accel_y_flag = False
+        self.accel_z_flag = False
         self.pianissimo_flag = False
 
         self.current_gyro_notes = []
         self.last_gyro_notes_played_list = []
         self.sustain_gyro_notes_played_list = []
+        self.current_gyro_channel = self.config.get('midi_channel')
+        self.last_gyro_channel = self.config.get('midi_channel')
         self.last_accel_trigger_time = 0
+        self.last_accel_x_trigger_time = 0
+        self.last_accel_y_trigger_time = 0
+        self.last_accel_z_trigger_time = 0
         self.tones = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
     def safe_send(self, midiout, message) -> bool:
@@ -64,30 +72,60 @@ class Player:
         for note_code in note_codes_list:
             match device:
                 case 'gyro':
+                    gyro_channel = (
+                        self.current_gyro_channel
+                        if self.config.get('gyro_multi_channel', False)
+                        else self.config.get('midi_channel')
+                    )
                     if self.pianissimo_flag:
-                        self.safe_send(self.gyro_midiout, [143 + self.config.get('midi_channel'), note_code, 127])
+                        self.safe_send(self.gyro_midiout, [143 + gyro_channel, note_code, 127])
                     else:
-                        self.safe_send(self.gyro_midiout, [143 + self.config.get('midi_channel'), note_code, 127])
+                        self.safe_send(self.gyro_midiout, [143 + gyro_channel, note_code, 127])
                     self.last_gyro_notes_played_list = note_codes_list
+                    self.last_gyro_channel = gyro_channel
                 case 'accel':
                     self.safe_send(self.accel_midiout, [143 + self.config.get('midi_channel'), note_code, 100])
+                case 'accel_x':
+                    self.safe_send(self.accel_midiout, [143 + self.config.get('accel_x_channel'), note_code, 100])
+                case 'accel_y':
+                    self.safe_send(self.accel_midiout, [143 + self.config.get('accel_y_channel'), note_code, 100])
+                case 'accel_z':
+                    self.safe_send(self.accel_midiout, [143 + self.config.get('accel_z_channel'), note_code, 100])
 
     def stop_notes(self, device, note_codes_list) -> None:
         for note_code in note_codes_list:
             match device:
                 case 'gyro':
-                    self.safe_send(self.gyro_midiout, [127 + self.config.get('midi_channel'), note_code, 100])
+                    gyro_channel = (
+                        self.last_gyro_channel
+                        if self.config.get('gyro_multi_channel', False)
+                        else self.config.get('midi_channel')
+                    )
+                    self.safe_send(self.gyro_midiout, [127 + gyro_channel, note_code, 100])
                     self.last_gyro_notes_played_list = note_codes_list
                 case 'accel':
                     self.safe_send(self.accel_midiout, [127 + self.config.get('midi_channel'), note_code, 100])
+                case 'accel_x':
+                    self.safe_send(self.accel_midiout, [127 + self.config.get('accel_x_channel'), note_code, 100])
+                case 'accel_y':
+                    self.safe_send(self.accel_midiout, [127 + self.config.get('accel_y_channel'), note_code, 100])
+                case 'accel_z':
+                    self.safe_send(self.accel_midiout, [127 + self.config.get('accel_z_channel'), note_code, 100])
 
     def set_gyro(self, gyro) -> None:
         self.gyro = gyro * self.config.get('hand')
-        for notes in self.config.get('angle_notes_list'):
+        for i, notes in enumerate(self.config.get('angle_notes_list')):
             notes_list = notes[1]
             if self.gyro <= notes[0]:
                 break
         self.current_gyro_notes = self.convert_to_midi_codes(notes_list)
+
+        if self.config.get('gyro_multi_channel', False):
+            gyro_channels = self.config.get('gyro_channels', [])
+            if i < len(gyro_channels):
+                self.current_gyro_channel = gyro_channels[i]
+            else:
+                self.current_gyro_channel = self.config.get('midi_channel')
 
     def set_accel(self, accel) -> None:
         self.accel = accel
@@ -125,6 +163,48 @@ class Player:
                 elif self.accel_flag:
                     self.stop_notes('accel', self.convert_to_midi_codes(self.config.get('accel_notes')))
                     self.accel_flag = False
+
+    def set_accel_x(self, accel) -> None:
+        self.accel_x = accel
+
+        if time.time() - self.last_accel_x_trigger_time > self.config.get('accel_x_delay'):
+            if self.accel_x > self.config.get('accel_x_sensitivity_+') or self.accel_x < -self.config.get('accel_x_sensitivity_-'):
+                if self.config.get('legato'):
+                    self.stop_notes('gyro', self.last_gyro_notes_played_list)
+                self.play_notes('accel_x', self.convert_to_midi_codes(self.config.get('accel_x_notes')))
+                self.last_accel_x_trigger_time = time.time()
+                self.accel_x_flag = True
+            elif self.accel_x_flag:
+                self.stop_notes('accel_x', self.convert_to_midi_codes(self.config.get('accel_x_notes')))
+                self.accel_x_flag = False
+
+    def set_accel_y(self, accel) -> None:
+        self.accel_y = accel
+
+        if time.time() - self.last_accel_y_trigger_time > self.config.get('accel_y_delay'):
+            if self.accel_y > self.config.get('accel_y_sensitivity_+') or self.accel_y < -self.config.get('accel_y_sensitivity_-'):
+                if self.config.get('legato'):
+                    self.stop_notes('gyro', self.last_gyro_notes_played_list)
+                self.play_notes('accel_y', self.convert_to_midi_codes(self.config.get('accel_y_notes')))
+                self.last_accel_y_trigger_time = time.time()
+                self.accel_y_flag = True
+            elif self.accel_y_flag:
+                self.stop_notes('accel_y', self.convert_to_midi_codes(self.config.get('accel_y_notes')))
+                self.accel_y_flag = False
+
+    def set_accel_z(self, accel) -> None:
+        self.accel_z = accel
+
+        if time.time() - self.last_accel_z_trigger_time > self.config.get('accel_z_delay'):
+            if self.accel_z > self.config.get('accel_z_sensitivity_+') or self.accel_z < -self.config.get('accel_z_sensitivity_-'):
+                if self.config.get('legato'):
+                    self.stop_notes('gyro', self.last_gyro_notes_played_list)
+                self.play_notes('accel_z', self.convert_to_midi_codes(self.config.get('accel_z_notes')))
+                self.last_accel_z_trigger_time = time.time()
+                self.accel_z_flag = True
+            elif self.accel_z_flag:
+                self.stop_notes('accel_z', self.convert_to_midi_codes(self.config.get('accel_z_notes')))
+                self.accel_z_flag = False
 
     def set_touch(self, touch) -> None:
         self.touch = touch
@@ -174,5 +254,20 @@ class Player:
         self.safe_send(self.gyro_midiout, [192 + self.config.get('midi_channel'), n, 0])
 
     def reset_channels(self):
-        self.safe_send(self.gyro_midiout, [175 + self.config.get('midi_channel'), 123, 0])
-        self.safe_send(self.accel_midiout, [175 + self.config.get('midi_channel'), 123, 0])
+        gyro_channels = [self.config.get('midi_channel')]
+        if self.config.get('gyro_multi_channel', False):
+            gyro_channels += self.config.get('gyro_channels', [])
+
+        for channel in set(gyro_channels):
+            self.safe_send(self.gyro_midiout, [175 + channel, 123, 0])
+
+        accel_channels = [self.config.get('midi_channel')]
+        if self.config.get('multi_accel', False):
+            accel_channels += [
+                self.config.get('accel_x_channel'),
+                self.config.get('accel_y_channel'),
+                self.config.get('accel_z_channel')
+            ]
+
+        for channel in set(accel_channels):
+            self.safe_send(self.accel_midiout, [175 + channel, 123, 0])

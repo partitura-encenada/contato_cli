@@ -1,0 +1,75 @@
+{
+    "midi_channel": 3,
+    "legato": false,
+    "hand": 1,
+    "angle_notes_list": [
+        [
+            -52,
+            [
+                [
+                    "D#",
+                    4
+                ]
+            ]
+        ],
+        [
+            0,
+            [
+                [
+                    "F",
+                    4
+                ]
+            ]
+        ],
+        [
+            52,
+            [
+                [
+                    "G#",
+                    4
+                ]
+            ]
+        ],
+        [
+            180,
+            [
+                [
+                    "B",
+                    4
+                ]
+            ]
+        ]
+    ],
+    "pitch_bend": false,
+    "multi_accel": true,
+    "accel_x_channel": 7,
+    "accel_x_notes": [
+        [
+            "F#",
+            2
+        ]
+    ],
+    "accel_x_delay": 2,
+    "accel_x_sensitivity_+": 8000,
+    "accel_x_sensitivity_-": 8000,
+    "accel_y_channel": 8,
+    "accel_y_notes": [
+        [
+            "G#",
+            2
+        ]
+    ],
+    "accel_y_delay": 2,
+    "accel_y_sensitivity_+": 8000,
+    "accel_y_sensitivity_-": 8000,
+    "accel_z_channel": 9,
+    "accel_z_notes": [
+        [
+            "A#",
+            2
+        ]
+    ],
+    "accel_z_delay": 2,
+    "accel_z_sensitivity_+": 8000,
+    "accel_z_sensitivity_-": 8000
+}
