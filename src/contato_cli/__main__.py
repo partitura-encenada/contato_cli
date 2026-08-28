@@ -254,10 +254,31 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
 
                         id = int(sensor_data_list[0].strip())
                         player.set_gyro(int(sensor_data_list[1]))
-                        player.set_accel(float(sensor_data_list[2]))
-                        player.set_touch(int(sensor_data_list[3]))
 
-                        click.echo(f'{id} gyro: {player.gyro} acc: {player.accel} t: {player.touch}')
+                        if len(sensor_data_list) >= 6:
+                            if player.config.get('multi_accel', False):
+                                player.set_accel_x(float(sensor_data_list[2]))
+                                player.set_accel_y(float(sensor_data_list[3]))
+                                player.set_accel_z(float(sensor_data_list[4]))
+                                player.set_touch(int(sensor_data_list[5]))
+
+                                click.echo(
+                                    f'{id} gyro: {player.gyro} '
+                                    f'acc_x: {player.accel_x} '
+                                    f'acc_y: {player.accel_y} '
+                                    f'acc_z: {player.accel_z} '
+                                    f't: {player.touch}'
+                                )
+                            else:
+                                player.set_accel(float(sensor_data_list[2]))
+                                player.set_touch(int(sensor_data_list[5]))
+
+                                click.echo(f'{id} gyro: {player.gyro} acc: {player.accel} t: {player.touch}')
+                        else:
+                            player.set_accel(float(sensor_data_list[2]))
+                            player.set_touch(int(sensor_data_list[3]))
+
+                            click.echo(f'{id} gyro: {player.gyro} acc: {player.accel} t: {player.touch}')
 
                     except (ValueError, IndexError):
                         continue
