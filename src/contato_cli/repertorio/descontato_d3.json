@@ -10,7 +10,7 @@
         [180, [["A#", 7]]]
     ],  
     "accel_notes":[["C", 5]],
-    "accel_delay": 3,                      
+    "accel_delay": 1,                      
     "accel_sensitivity_+": 12000,  
     "accel_sensitivity_-": 12000,
     "pitch_bend": false
