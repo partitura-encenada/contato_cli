@@ -313,6 +313,14 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
 
             time.sleep(0.3)
 
+            try:
+                player.close_midi()
+            except Exception as midi_close_error:
+                click.echo(
+                    f'Não foi possível fechar MIDI: '
+                    f'{type(midi_close_error).__name__}: {midi_close_error}'
+                )
+
             if serial_port.is_open:
                 serial_port.close()
 

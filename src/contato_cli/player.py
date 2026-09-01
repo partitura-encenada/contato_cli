@@ -60,6 +60,19 @@ class Player:
             print(f'Aviso MIDI: {type(e).__name__}: {e}')
             return False
 
+    def close_midi(self) -> None:
+        midiouts = []
+
+        for midiout in (self.gyro_midiout, self.accel_midiout):
+            if midiout not in midiouts:
+                midiouts.append(midiout)
+
+        for midiout in midiouts:
+            try:
+                midiout.close_port()
+            except Exception as e:
+                print(f'Aviso ao fechar MIDI: {type(e).__name__}: {e}')
+
     def convert_to_midi_codes(self, notes_list) -> list[int]:
         midi_codes = []
         for note in notes_list:
