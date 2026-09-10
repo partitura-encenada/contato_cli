@@ -42,6 +42,18 @@ def hard_reset_esp32(serial_port):
         click.echo(f'Aviso: reset RTS/DTR falhou: {type(e).__name__}')
         return False
 
+def iniciar_base(serial_port):
+    """
+    Reinicia fisicamente a base e manda START algumas vezes seguidas
+    para garantir que ela receba o comando e comece a transmitir.
+    """
+    hard_reset_esp32(serial_port)
+
+    for _ in range(3):
+        serial_port.write(b'START\n')
+        serial_port.flush()
+        time.sleep(0.1)
+
 @click.group()
 def cli() -> None:
     pass
@@ -181,12 +193,9 @@ async def scan_mac(id):
 @click.option('--id')
 @click.option('--dispositivo', '-d', default='Contato')
 @click.option('--com')
-@click.option('--daw', is_flag=True)
+@click.option('--daw/--no-daw', default=True)
 async def connect(performance, id, dispositivo, com, daw) -> None:
-    if daw:
-        player = Player(performance, daw=True)
-    else:
-        player = Player(performance)
+    player = Player(performance, daw=daw)
 
     # Se passar --id sem --com, usa o dicionário salvo pelo scan-com.
     if id and not com:
@@ -230,15 +239,8 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
             stopbits=serial.STOPBITS_ONE
         )
 
-        # Reinicia fisicamente o ESP32 pelo circuito de auto-reset da DevKit.
-        # Isso equivale ao botão EN sem precisar tocar na placa.
-        hard_reset_esp32(serial_port)
-
-        # Envia START algumas vezes para garantir que a base receba.
-        for _ in range(3):
-            serial_port.write(b'START\n')
-            serial_port.flush()
-            time.sleep(0.1)
+        # Reinicia fisicamente a base e manda START ate ela comecar a transmitir.
+        iniciar_base(serial_port)
 
         try:
             while True:
