@@ -58,7 +58,7 @@ def esperar_ponte_pronta(serial_port, timeout=15):
         linha = serial_port.readline().decode('utf-8', errors='ignore').strip()
         if linha:
             click.echo(f'   (ponte) {linha}')
-        if linha == 'Ponte pronta.':
+        if linha.endswith('Ponte pronta.'):
             return True
     return False
 
@@ -93,9 +93,24 @@ def enviar_para_ponte(porta, mac_hex, caminho_bin):
     enviados = 0
     while enviados < tamanho:
         pedaco = dados[enviados:enviados + TAMANHO_CHUNK]
-        serial_port.write(pedaco)
-        serial_port.flush()
-        esperar('OK_CHUNK')
+
+        for tentativa in range(3):
+            serial_port.write(pedaco)
+            serial_port.flush()
+            linha = serial_port.readline().decode('utf-8', errors='ignore').strip()
+
+            if linha == 'OK_CHUNK':
+                break
+
+            if linha == 'ERRO_CHUNK_NAO_CONFIRMADO':
+                click.echo(f'\n  aviso: chunk em {enviados} bytes falhou no radio, '
+                            f'tentando de novo ({tentativa + 1}/3)...')
+                continue
+
+            raise RuntimeError(f'Esperava "OK_CHUNK" da ponte, recebi "{linha}"')
+        else:
+            raise RuntimeError(f'Chunk em {enviados} bytes falhou 3 vezes seguidas - abortando.')
+
         enviados += len(pedaco)
         click.echo(f'\r{enviados}/{tamanho} bytes', nl=False)
 
