@@ -3,23 +3,14 @@ import serial
 import time
 from serial.tools import list_ports
 from pathlib import Path
-from functools import partial
 
-from bleak import BleakClient, BleakScanner
-import asyncio
 import asyncclick as click
-from bleak.backends.characteristic import BleakGATTCharacteristic
 
-from contato_cli.mac_contato_dict import mac_contato_dict
 from contato_cli.com_contato_dict import com_contato_dict
 from contato_cli.player import Player
 from contato_cli.ota import ota
 from contato_cli.cal import calibrar
 from contato_cli.update_bases import update_bases
-
-TOUCH_CHARACTERISTIC_UUID = '62c84a29-95d6-44e4-a13d-a9372147ce21'
-GYRO_CHARACTERISTIC_UUID = '9b7580ed-9fc2-41e7-b7c2-f63de01f0692'
-ACCEL_CHARACTERISTIC_UUID = 'f62094cf-21a7-4f71-bb3f-5a5b17bb134e' 
 
 COM_CONTATO_DICT_FILE = Path(__file__).parent / 'com_contato_dict.py'
 
@@ -53,13 +44,6 @@ def cli() -> None:
 cli.add_command(ota)
 cli.add_command(calibrar)
 cli.add_command(update_bases)
-
-@cli.command()
-async def scan():
-    click.echo('Scan')
-    devices = await BleakScanner.discover()
-    for d in devices:
-        click.echo(d)
 
 @cli.command(name='scan-com')
 @click.option('--tempo', default=1)
@@ -183,10 +167,9 @@ async def scan_mac(id):
 @cli.command()
 @click.argument('performance')
 @click.option('--id')
-@click.option('--dispositivo', '-d', default='Contato')
 @click.option('--com')
 @click.option('--daw/--no-daw', default=True)
-async def connect(performance, id, dispositivo, com, daw) -> None:
+async def connect(performance, id, com, daw) -> None:
     player = Player(performance, daw=daw)
 
     if id and not com:
@@ -198,29 +181,8 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
             return
 
     if not com:
-        click.echo('Scan')
-        if id:
-            mac_contato_dict.get(id)
-            if mac_contato_dict.get(id) is None:
-                raise Exception
-            device = await BleakScanner.find_device_by_address(mac_contato_dict.get(id))
-        elif dispositivo:
-            device = await BleakScanner.find_device_by_name(dispositivo)
-        else:
-            device = await BleakScanner.find_device_by_name('Contato')
-
-        if device is None:
-            click.echo(f'Não foi possível encontrar dispositivo de nome: {dispositivo}')
-            return
-
-        click.echo("Conectando...")
-        async with BleakClient(device) as client:
-            click.echo("Conectado")
-            await client.start_notify(GYRO_CHARACTERISTIC_UUID, partial(bleak_gyro_callback, player))
-            await client.start_notify(ACCEL_CHARACTERISTIC_UUID, partial(bleak_accel_callback, player))
-            await client.start_notify(TOUCH_CHARACTERISTIC_UUID, partial(bleak_touch_callback, player))
-            while True:
-                await asyncio.sleep(1)
+        click.echo('Informe --id ou --com para conectar a uma base.')
+        return
 
     else:
         serial_port = serial.Serial(
@@ -317,12 +279,3 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
 
 if __name__ == "__main__":
     cli()
-
-def bleak_touch_callback(player, characteristic: BleakGATTCharacteristic, data: bytearray): 
-    player.set_touch(int.from_bytes(data, 'little', signed=False))
-
-def bleak_gyro_callback(player, characteristic: BleakGATTCharacteristic, data: bytearray): 
-    player.set_gyro(int.from_bytes(data, 'little', signed=True))
-
-def bleak_accel_callback(player, characteristic: BleakGATTCharacteristic, data: bytearray): 
-    player.set_accel(int.from_bytes(data, 'little', signed=True))
