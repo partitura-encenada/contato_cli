@@ -13,6 +13,8 @@ from bleak.backends.characteristic import BleakGATTCharacteristic
 from contato_cli.mac_contato_dict import mac_contato_dict
 from contato_cli.com_contato_dict import com_contato_dict
 from contato_cli.player import Player
+from contato_cli.ota import ota
+from contato_cli.cal import calibrar
 
 TOUCH_CHARACTERISTIC_UUID = '62c84a29-95d6-44e4-a13d-a9372147ce21'
 GYRO_CHARACTERISTIC_UUID = '9b7580ed-9fc2-41e7-b7c2-f63de01f0692'
@@ -22,13 +24,6 @@ COM_CONTATO_DICT_FILE = Path(__file__).parent / 'com_contato_dict.py'
 
 
 def hard_reset_esp32(serial_port):
-    """
-    Faz reset físico do ESP32 pelo circuito de auto-reset da DevKit.
-    RTS=True  -> EN fica LOW (reset)
-    RTS=False -> EN volta HIGH (executa o firmware)
-    DTR=False mantém GPIO0 HIGH para iniciar o programa normal,
-    e não entrar no bootloader.
-    """
     try:
         serial_port.dtr = False
         serial_port.rts = True
@@ -43,10 +38,6 @@ def hard_reset_esp32(serial_port):
         return False
 
 def iniciar_base(serial_port):
-    """
-    Reinicia fisicamente a base e manda START algumas vezes seguidas
-    para garantir que ela receba o comando e comece a transmitir.
-    """
     hard_reset_esp32(serial_port)
 
     for _ in range(3):
@@ -57,6 +48,9 @@ def iniciar_base(serial_port):
 @click.group()
 def cli() -> None:
     pass
+
+cli.add_command(ota)
+cli.add_command(calibrar)
 
 @cli.command()
 async def scan():
@@ -72,7 +66,6 @@ async def scan_com(tempo):
 
     for porta in list_ports.comports():
 
-        # ignora portas Bluetooth
         descricao = (porta.description or '').lower()
         hwid = (porta.hwid or '').lower()
 
@@ -91,7 +84,6 @@ async def scan_com(tempo):
                 stopbits=serial.STOPBITS_ONE
             )
 
-            # Se a base ficou travada após Ctrl+C, reinicia pelo EN via RTS.
             hard_reset_esp32(serial_port)
 
             for _ in range(3):
@@ -112,7 +104,6 @@ async def scan_com(tempo):
 
                 partes = linha.split('/')
 
-                # formato ID/3
                 if len(partes) == 2 and partes[0] == 'ID':
                     try:
                         id_lido = int(partes[1].strip())
@@ -126,7 +117,6 @@ async def scan_com(tempo):
                     except ValueError:
                         continue
 
-                # formato normal id/gyro/accel/touch
                 elif len(partes) >= 4:
                     try:
                         id_lido = int(partes[0].strip())
@@ -197,7 +187,6 @@ async def scan_mac(id):
 async def connect(performance, id, dispositivo, com, daw) -> None:
     player = Player(performance, daw=daw)
 
-    # Se passar --id sem --com, usa o dicionário salvo pelo scan-com.
     if id and not com:
         com = com_contato_dict.get(str(id))
 
@@ -239,7 +228,6 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
             stopbits=serial.STOPBITS_ONE
         )
 
-        # Reinicia fisicamente a base e manda START ate ela comecar a transmitir.
         iniciar_base(serial_port)
 
         try:
@@ -288,7 +276,7 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
         except KeyboardInterrupt:
             click.echo('Encerrando...')
             try:
-                serial_port.write(b'STOP\n')  # avisa a base para parar de printar
+                serial_port.write(b'STOP\n')
             except Exception:
                 pass
             try:
@@ -304,7 +292,6 @@ async def connect(performance, id, dispositivo, com, daw) -> None:
                 click.echo(f'Erro ao resetar MIDI ignorado: {type(reset_error).__name__}: {reset_error}')
 
         finally:
-            # Avisa a base para parar de imprimir.
             try:
                 for _ in range(5):
                     serial_port.write(b'STOP\n')

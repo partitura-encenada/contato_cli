@@ -33,7 +33,6 @@ class Player:
             self.gyro_midiout = open_port_by_name('gyro')
             self.accel_midiout = open_port_by_name('accel')
 
-        # Sistema de flag assegura que condicionais só executem em mudanças de estado
         self.touch_flag = False
         self.accel_flag = False
         self.accel_x_flag = False
