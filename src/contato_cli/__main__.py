@@ -14,7 +14,7 @@ from contato_cli.mac_contato_dict import mac_contato_dict
 from contato_cli.com_contato_dict import com_contato_dict
 from contato_cli.player import Player
 from contato_cli.ota import ota
-from contato_cli.calibrar import calibrar
+from contato_cli.cal import calibrar
 from contato_cli.update_bases import update_bases
 
 TOUCH_CHARACTERISTIC_UUID = '62c84a29-95d6-44e4-a13d-a9372147ce21'
