@@ -14,7 +14,8 @@ from contato_cli.mac_contato_dict import mac_contato_dict
 from contato_cli.com_contato_dict import com_contato_dict
 from contato_cli.player import Player
 from contato_cli.ota import ota
-from contato_cli.cal import calibrar
+from contato_cli.calibrar import calibrar
+from contato_cli.update_bases import update_bases
 
 TOUCH_CHARACTERISTIC_UUID = '62c84a29-95d6-44e4-a13d-a9372147ce21'
 GYRO_CHARACTERISTIC_UUID = '9b7580ed-9fc2-41e7-b7c2-f63de01f0692'
@@ -51,6 +52,7 @@ def cli() -> None:
 
 cli.add_command(ota)
 cli.add_command(calibrar)
+cli.add_command(update_bases)
 
 @cli.command()
 async def scan():
