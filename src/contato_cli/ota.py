@@ -9,7 +9,7 @@ from contato_cli.equip_mac_dict import equip_mac_dict
 
 PLATFORMIO_PROJECT_DIR = r'C:\Users\cbreder\Projetos\contato_hardware\platformio'
 PLATFORMIO_ENV = 'esp32doit-devkit-v1'
-TAMANHO_CHUNK = 200
+TAMANHO_CHUNK = 230
 TDMA_MAC = '1C6920A36210'
 TDMA_SCRIPT_NAME = 'TDMA'
 
@@ -70,7 +70,7 @@ def enviar_para_ponte(porta, mac_hex, caminho_bin):
     tamanho = len(dados)
     click.echo(f'Enviando {tamanho} bytes para a ponte em {porta}...')
 
-    serial_port = serial.Serial(port=porta, baudrate=115200, timeout=5)
+    serial_port = serial.Serial(port=porta, baudrate=921600, timeout=5)
 
     click.echo('Aguardando a ponte inicializar...')
     if not esperar_ponte_pronta(serial_port):
