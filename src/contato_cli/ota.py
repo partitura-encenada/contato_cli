@@ -6,6 +6,7 @@ import serial
 import asyncclick as click
 
 from contato_cli.equip_mac_dict import equip_mac_dict
+from contato_cli.base_mac_dict import base_mac_dict
 
 PLATFORMIO_PROJECT_DIR = r'C:\Users\cbreder\Projetos\contato_hardware\platformio'
 PLATFORMIO_ENV = 'esp32doit-devkit-v1'
@@ -49,6 +50,13 @@ def obter_mac(id):
     mac = equip_mac_dict.get(str(id))
     if not mac:
         click.echo(f'ID {id} nao encontrado em equip_mac_dict.py')
+    return mac
+
+
+def obter_mac_base(id):
+    mac = base_mac_dict.get(str(id))
+    if not mac:
+        click.echo(f'ID {id} nao encontrado em base_mac_dict.py')
     return mac
 
 
@@ -130,19 +138,27 @@ def enviar_para_ponte(porta, mac_hex, caminho_bin):
 
 
 @click.command()
-@click.option('--id', help='ID do equip (ex: 3). Nao use junto com --tdma.')
-@click.option('--tdma', is_flag=True, help='Envia o firmware do TDMA (relogio) em vez de um equip.')
+@click.option('--id', help='ID do equip (ex: 3). Nao use junto com --base ou --tdma.')
+@click.option('--base', 'base_id', help='ID da base (ex: 4). Nao use junto com --id ou --tdma.')
+@click.option('--tdma', is_flag=True, help='Envia o firmware do TDMA (relogio) em vez de um equip/base.')
 @click.option('--porta', required=True, help='Porta serial do ESP32-ponte, ex: COM7')
-def ota(id, tdma, porta):
+def ota(id, base_id, tdma, porta):
     if tdma:
         if not TDMA_MAC:
             click.echo('TDMA_MAC nao configurado no topo do ota.py - preencha com o MAC do ESP32 do TDMA.')
             return
         mac = TDMA_MAC
         script_name = TDMA_SCRIPT_NAME
+    elif base_id:
+        mac = obter_mac_base(base_id)
+        if not mac:
+            return
+        script_name = f'base_{base_id}'
     else:
         if not id:
-            click.echo('Uso: contato ota --id <id> --porta <porta>   ou   contato ota --tdma --porta <porta>')
+            click.echo('Uso: contato ota --id <id> --porta <porta>   ou   '
+                        'contato ota --base <id> --porta <porta>   ou   '
+                        'contato ota --tdma --porta <porta>')
             return
         mac = obter_mac(id)
         if not mac:
