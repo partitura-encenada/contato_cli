@@ -2,15 +2,17 @@
     "midi_channel" : 2,
     "legato" : false,
     "hand" : -1,
+    "gyro_correction_-": 1.3846,
+    "gyro_correction_+": 1.2857,
+    
     "angle_notes_list": [
-        [-35, [["G", 6]]],
+        [-45, [["G", 6]]],
         [0, [["A", 6]]],
-        [35, [["B", 6]]],
+        [45, [["B", 6]]],
         [180, [["D", 7]]]
     ],  
     "accel_notes":[["G#", 5]],
     "accel_delay": 2,                      
     "accel_sensitivity_+": 12000,  
-    "accel_sensitivity_-": 12000,
-    "pitch_bend": false
+    "accel_sensitivity_-": 12000
 }
