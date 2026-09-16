@@ -8,8 +8,8 @@ import asyncclick as click
 
 from contato_cli.com_contato_dict import com_contato_dict
 from contato_cli.player import Player
-from contato_cli.ota import ota
-from contato_cli.cal import calibrar
+from contato_cli.over_the_air import ota
+from contato_cli.calibrate import calibrate
 from contato_cli.update_bases import update_bases
 
 COM_CONTATO_DICT_FILE = Path(__file__).parent / 'com_contato_dict.py'
@@ -42,7 +42,7 @@ def cli() -> None:
     pass
 
 cli.add_command(ota)
-cli.add_command(calibrar)
+cli.add_command(calibrate)
 cli.add_command(update_bases)
 
 @cli.command(name='scan-com')

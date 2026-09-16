@@ -1,7 +1,6 @@
 import os
 import subprocess
 import time
-
 import serial
 import asyncclick as click
 
@@ -141,8 +140,11 @@ def enviar_para_ponte(porta, mac_hex, caminho_bin):
 @click.option('--id', help='ID do equip (ex: 3). Nao use junto com --base ou --tdma.')
 @click.option('--base', 'base_id', help='ID da base (ex: 4). Nao use junto com --id ou --tdma.')
 @click.option('--tdma', is_flag=True, help='Envia o firmware do TDMA (relogio) em vez de um equip/base.')
+@click.option('--script', 'script_override', default=None,
+              help='Nome do script a compilar/enviar (ex: equip_6_so_accel). '
+                   'Se omitido, usa equip_<id> ou base_<id> conforme o padrao.')
 @click.option('--porta', required=True, help='Porta serial do ESP32-ponte, ex: COM7')
-def ota(id, base_id, tdma, porta):
+def ota(id, base_id, tdma, script_override, porta):
     if tdma:
         if not TDMA_MAC:
             click.echo('TDMA_MAC nao configurado no topo do ota.py - preencha com o MAC do ESP32 do TDMA.')
@@ -164,6 +166,9 @@ def ota(id, base_id, tdma, porta):
         if not mac:
             return
         script_name = f'equip_{id}'
+
+    if script_override:
+        script_name = script_override
 
     caminho_bin = compilar(script_name)
     if not caminho_bin:

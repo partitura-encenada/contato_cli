@@ -126,10 +126,19 @@ class Player:
 
     def set_gyro(self, gyro) -> None:
         self.gyro = gyro * self.config.get('hand')
+
+        if self.gyro < 0:
+            self.gyro *= self.config.get('gyro_correction_-', 1.0)
+        elif self.gyro > 0:
+            self.gyro *= self.config.get('gyro_correction_+', 1.0)
+
+        self.gyro = round(self.gyro)
+
         for i, notes in enumerate(self.config.get('angle_notes_list')):
             notes_list = notes[1]
             if self.gyro <= notes[0]:
                 break
+
         self.current_gyro_notes = self.convert_to_midi_codes(notes_list)
 
         if self.config.get('gyro_multi_channel', False):
