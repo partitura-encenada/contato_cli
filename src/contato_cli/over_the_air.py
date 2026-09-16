@@ -110,8 +110,6 @@ def enviar_para_ponte(porta, mac_hex, caminho_bin):
                 break
 
             if linha == 'ERRO_CHUNK_NAO_CONFIRMADO':
-                click.echo(f'\n  aviso: chunk em {enviados} bytes falhou no radio, '
-                            f'tentando de novo ({tentativa + 1}/3)...')
                 continue
 
             raise RuntimeError(f'Esperava "OK_CHUNK" da ponte, recebi "{linha}"')
