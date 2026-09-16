@@ -1,5 +1,6 @@
 import os
 import subprocess
+import shutil
 import time
 import serial
 import asyncclick as click
@@ -15,6 +16,31 @@ TDMA_SCRIPT_NAME = 'TDMA'
 
 
 def compilar(script_name):
+    project_dir = PLATFORMIO_PROJECT_DIR
+    search_dirs = [
+        os.path.join(project_dir, 'util'),
+        os.path.join(project_dir, 'scripts'),
+        os.path.join(project_dir, 'scripts', 'equip'),
+        os.path.join(project_dir, 'scripts', 'base'),
+        os.path.join(project_dir, 'scripts', 'util'),
+    ]
+
+    src_file = None
+    for pasta in search_dirs:
+        candidato = os.path.join(pasta, script_name + '.cpp')
+        if os.path.isfile(candidato):
+            src_file = candidato
+            break
+
+    if not src_file:
+        click.echo(f"'{script_name}.cpp' nao encontrado em:")
+        for pasta in search_dirs:
+            click.echo(f'  {pasta}')
+        return None
+
+    dest = os.path.join(project_dir, 'src', 'main.cpp')
+    shutil.copyfile(src_file, dest)
+
     click.echo(f'Compilando {script_name}...')
 
     env = os.environ.copy()
@@ -168,8 +194,12 @@ def ota(id, base_id, tdma, script_override, porta):
     if script_override:
         script_name = script_override
 
-    caminho_bin = compilar(script_name)
-    if not caminho_bin:
-        return
+    try:
+        caminho_bin = compilar(script_name)
+        if not caminho_bin:
+            return
 
-    enviar_para_ponte(porta, mac, caminho_bin)
+        enviar_para_ponte(porta, mac, caminho_bin)
+    finally:
+        main_cpp = os.path.join(PLATFORMIO_PROJECT_DIR, 'src', 'main.cpp')
+        open(main_cpp, 'w').close()
