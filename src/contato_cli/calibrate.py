@@ -11,7 +11,7 @@ from contato_cli.equip_mac_dict import equip_mac_dict
 PLATFORMIO_PROJECT_DIR = r'C:\Users\cbreder\Projetos\contato_hardware\platformio'
 PLATFORMIO_ENV = 'esp32doit-devkit-v1'
 TAMANHO_CHUNK = 230
-SCRIPT_CALIBRACAO = 'cal'
+SCRIPT_CALIBRACAO = 'calibrate'
 
 
 def compilar(script_name):
