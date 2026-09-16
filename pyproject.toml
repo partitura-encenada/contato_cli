@@ -10,10 +10,7 @@ requires-python = "==3.12.7"
 dependencies = [
   "asyncclick",
   "python-rtmidi",
-  "bleak",
-  "pytemidi",
-  "pyserial",
-  "cloup"
+  "pyserial"
 ]
 
 [project.scripts]
