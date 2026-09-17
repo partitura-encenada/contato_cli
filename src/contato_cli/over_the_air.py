@@ -8,7 +8,7 @@ import asyncclick as click
 from contato_cli.equip_mac_dict import equip_mac_dict
 from contato_cli.base_mac_dict import base_mac_dict
 
-PLATFORMIO_PROJECT_DIR = r'C:\Users\cbreder\Projetos\contato_hardware\platformio'
+PLATFORMIO_PROJECT_DIR = r'C:\Users\cbreder\contato_hardware\platformio'
 PLATFORMIO_ENV = 'esp32doit-devkit-v1'
 TAMANHO_CHUNK = 230
 TDMA_MAC = '1C6920A36210'
