@@ -1,5 +1,5 @@
 {
-    "midi_channel" : 10,
+    "midi_channel" : 2,
     "legato" : false,
     "hand" : -1,
     "gyro_correction_-": 1.3846,
