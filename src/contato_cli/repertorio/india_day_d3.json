@@ -2,8 +2,8 @@
     "midi_channel" : 6,
     "legato" : false,
     "hand" : -1,
-    "gyro_correction_-": 1.3846,
-    "gyro_correction_+": 1.2857,
+    "gyro_correction_-": 1.8,
+    "gyro_correction_+": 2,
     
     "angle_notes_list": [
         [90, [["F", 4]]],
