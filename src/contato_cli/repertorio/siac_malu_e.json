@@ -14,6 +14,6 @@
     ],  
     "accel_notes":[["C", 3]],
     "accel_delay": 0.5,                      
-    "accel_sensitivity_+": 10000,  
-    "accel_sensitivity_-": 10000
+    "accel_sensitivity_+": 14000,  
+    "accel_sensitivity_-": 14000
 }
