@@ -2,14 +2,14 @@
     "midi_channel" : 16,
     "legato" : false,
     "hand" : -1,
-    "gyro_correction_-": 1.3846,
-    "gyro_correction_+": 1.2857,
+    "gyro_correction_-": 1.8,
+    "gyro_correction_+": 2,
 
     "angle_notes_list": [
-        [-54, [["D", 7]]],
+        [-64, [["D", 7]]],
         [-18, [["D#", 7]]],
         [18, [["F", 7]]],
-        [54, [["A", 7]]],
+        [64, [["A", 7]]],
         [180, [["A#", 7]]]
     ],  
     "accel_notes":[["C", 5]],
