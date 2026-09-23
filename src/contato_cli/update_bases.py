@@ -24,7 +24,7 @@ import asyncclick as click
 from contato_cli.com_contato_dict import com_contato_dict
 
 # ═════════ ALTERAR PARA O SEU AMBIENTE (mesmos valores de ota.py/calibrar.py) ═════════
-PLATFORMIO_PROJECT_DIR = r'C:\Users\cbreder\Projetos\contato_hardware\platformio'  # ALTERAR
+PLATFORMIO_PROJECT_DIR = r'C:\Users\cbreder\contato_hardware\platformio'  # ALTERAR
 PLATFORMIO_ENV = 'esp32doit-devkit-v1'  # ALTERAR: nome do environment no platformio.ini
 
 
