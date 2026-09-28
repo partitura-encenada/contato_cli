@@ -28,45 +28,45 @@ PLATFORMIO_PROJECT_DIR = r'C:\Users\cbreder\contato_hardware\platformio'  # ALTE
 PLATFORMIO_ENV = 'esp32doit-devkit-v1'  # ALTERAR: nome do environment no platformio.ini
 
 
-def parse_ids(texto):
+def parse_ids(text):
     """
     Aceita '3,4,5', '3-8', ou uma mistura tipo '3,5-8,10'.
     Retorna uma lista de strings de id, em ordem, sem duplicar.
     """
     ids = []
-    for parte in texto.split(','):
-        parte = parte.strip()
-        if not parte:
+    for part in text.split(','):
+        part = part.strip()
+        if not part:
             continue
-        if '-' in parte:
-            inicio, fim = parte.split('-')
-            for n in range(int(inicio), int(fim) + 1):
+        if '-' in part:
+            start, end = part.split('-')
+            for n in range(int(start), int(end) + 1):
                 if str(n) not in ids:
                     ids.append(str(n))
         else:
-            if parte not in ids:
-                ids.append(parte)
+            if part not in ids:
+                ids.append(part)
     return ids
 
 
-def subir_base(id_base):
-    porta = com_contato_dict.get(str(id_base))
-    if not porta:
-        click.echo(f'  ID {id_base}: nao encontrado em com_contato_dict.py (rode "contato scan-com" primeiro)')
+def upload_base(base_id):
+    port = com_contato_dict.get(str(base_id))
+    if not port:
+        click.echo(f'  ID {base_id}: nao encontrado em com_contato_dict.py (rode "contato scan-com" primeiro)')
         return False
 
-    script_name = f'base_{id_base}'
-    click.echo(f'  ID {id_base} -> COM{porta}: subindo {script_name}.cpp...')
+    script_name = f'base_{base_id}'
+    click.echo(f'  ID {base_id} -> COM{port}: subindo {script_name}.cpp...')
 
     env = os.environ.copy()
     env['SCRIPT'] = script_name
 
-    resultado = subprocess.run(
+    result = subprocess.run(
         [
             'pio', 'run',
             '-e', PLATFORMIO_ENV,
             '-t', 'upload',
-            '--upload-port', f'COM{porta}',
+            '--upload-port', f'COM{port}',
             '-d', PLATFORMIO_PROJECT_DIR,
         ],
         env=env,
@@ -74,13 +74,13 @@ def subir_base(id_base):
         text=True
     )
 
-    if resultado.returncode != 0:
-        click.echo(f'  ID {id_base}: FALHOU')
-        click.echo(resultado.stdout[-1500:])
-        click.echo(resultado.stderr[-1500:])
+    if result.returncode != 0:
+        click.echo(f'  ID {base_id}: FALHOU')
+        click.echo(result.stdout[-1500:])
+        click.echo(result.stderr[-1500:])
         return False
 
-    click.echo(f'  ID {id_base}: OK')
+    click.echo(f'  ID {base_id}: OK')
     return True
 
 
@@ -88,20 +88,20 @@ def subir_base(id_base):
 @click.option('--ids', required=True, help='IDs a subir, ex: 3,4,5,6,7,8 ou 3-8')
 def update_bases(ids):
     """Sobe base_<id>.cpp via USB em varias bases de uma vez, usando com_contato_dict.py."""
-    lista_ids = parse_ids(ids)
+    id_list = parse_ids(ids)
 
-    if not lista_ids:
+    if not id_list:
         click.echo('Nenhum ID valido informado.')
         return
 
-    click.echo(f'Subindo bases: {", ".join(lista_ids)}\n')
+    click.echo(f'Subindo bases: {", ".join(id_list)}\n')
 
-    resultados = {}
-    for id_base in lista_ids:
-        resultados[id_base] = subir_base(id_base)
+    results = {}
+    for base_id in id_list:
+        results[base_id] = upload_base(base_id)
         click.echo()
 
     click.echo('==== Resumo ====')
-    for id_base in lista_ids:
-        status = 'OK' if resultados[id_base] else 'FALHOU'
-        click.echo(f'  base_{id_base}: {status}')
+    for base_id in id_list:
+        status = 'OK' if results[base_id] else 'FALHOU'
+        click.echo(f'  base_{base_id}: {status}')

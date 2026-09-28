@@ -10,12 +10,12 @@ from contato_cli.base_mac_dict import base_mac_dict
 
 PLATFORMIO_PROJECT_DIR = r'C:\Users\cbreder\contato_hardware\platformio'
 PLATFORMIO_ENV = 'esp32doit-devkit-v1'
-TAMANHO_CHUNK = 230
+CHUNK_SIZE = 230
 TDMA_MAC = '1C6920A36210'
 TDMA_SCRIPT_NAME = 'TDMA'
 
 
-def compilar(script_name):
+def build_firmware(script_name):
     project_dir = PLATFORMIO_PROJECT_DIR
     search_dirs = [
         os.path.join(project_dir, 'util'),
@@ -26,16 +26,16 @@ def compilar(script_name):
     ]
 
     src_file = None
-    for pasta in search_dirs:
-        candidato = os.path.join(pasta, script_name + '.cpp')
-        if os.path.isfile(candidato):
-            src_file = candidato
+    for folder in search_dirs:
+        candidate = os.path.join(folder, script_name + '.cpp')
+        if os.path.isfile(candidate):
+            src_file = candidate
             break
 
     if not src_file:
         click.echo(f"'{script_name}.cpp' nao encontrado em:")
-        for pasta in search_dirs:
-            click.echo(f'  {pasta}')
+        for folder in search_dirs:
+            click.echo(f'  {folder}')
         return None
 
     dest = os.path.join(project_dir, 'src', 'main.cpp')
@@ -46,115 +46,115 @@ def compilar(script_name):
     env = os.environ.copy()
     env['SCRIPT'] = script_name
 
-    resultado = subprocess.run(
+    result = subprocess.run(
         ['pio', 'run', '-e', PLATFORMIO_ENV, '-d', PLATFORMIO_PROJECT_DIR],
         env=env,
         capture_output=True,
         text=True
     )
 
-    if resultado.returncode != 0:
+    if result.returncode != 0:
         click.echo('Falha na compilacao:')
-        click.echo(resultado.stdout[-2000:])
-        click.echo(resultado.stderr[-2000:])
+        click.echo(result.stdout[-2000:])
+        click.echo(result.stderr[-2000:])
         return None
 
-    caminho_bin = os.path.join(
+    bin_path = os.path.join(
         PLATFORMIO_PROJECT_DIR, '.pio', 'build', PLATFORMIO_ENV, 'firmware.bin'
     )
 
-    if not os.path.isfile(caminho_bin):
-        click.echo(f'Compilou mas nao encontrei o .bin em: {caminho_bin}')
+    if not os.path.isfile(bin_path):
+        click.echo(f'Compilou mas nao encontrei o .bin em: {bin_path}')
         return None
 
-    click.echo(f'Compilado: {caminho_bin} ({os.path.getsize(caminho_bin)} bytes)')
-    return caminho_bin
+    click.echo(f'Compilado: {bin_path} ({os.path.getsize(bin_path)} bytes)')
+    return bin_path
 
 
-def obter_mac(id):
+def get_mac(id):
     mac = equip_mac_dict.get(str(id))
     if not mac:
         click.echo(f'ID {id} nao encontrado em equip_mac_dict.py')
     return mac
 
 
-def obter_mac_base(id):
+def get_base_mac(id):
     mac = base_mac_dict.get(str(id))
     if not mac:
         click.echo(f'ID {id} nao encontrado em base_mac_dict.py')
     return mac
 
 
-def esperar_ponte_pronta(serial_port, timeout=15):
-    inicio = time.time()
-    while time.time() - inicio < timeout:
-        linha = serial_port.readline().decode('utf-8', errors='ignore').strip()
-        if linha:
-            click.echo(f'   (ponte) {linha}')
-        if linha.endswith('Ponte pronta.'):
+def wait_bridge_ready(serial_port, timeout=15):
+    start = time.time()
+    while time.time() - start < timeout:
+        line = serial_port.readline().decode('utf-8', errors='ignore').strip()
+        if line:
+            click.echo(f'   (ponte) {line}')
+        if line.endswith('Ponte pronta.'):
             return True
     return False
 
 
-def enviar_para_ponte(porta, mac_hex, caminho_bin):
-    with open(caminho_bin, 'rb') as f:
-        dados = f.read()
+def send_to_bridge(port, mac_hex, bin_path):
+    with open(bin_path, 'rb') as f:
+        data = f.read()
 
-    tamanho = len(dados)
-    click.echo(f'Enviando {tamanho} bytes para a ponte em {porta}...')
+    size = len(data)
+    click.echo(f'Enviando {size} bytes para a ponte em {port}...')
 
-    serial_port = serial.Serial(port=porta, baudrate=921600, timeout=5)
+    serial_port = serial.Serial(port=port, baudrate=921600, timeout=5)
 
     click.echo('Aguardando a ponte inicializar...')
-    if not esperar_ponte_pronta(serial_port):
+    if not wait_bridge_ready(serial_port):
         click.echo('A ponte nao avisou que estava pronta a tempo. '
                     'Confira se ela esta rodando ponte.cpp e na porta certa.')
         serial_port.close()
         return
 
-    def esperar(esperado):
-        linha = serial_port.readline().decode('utf-8', errors='ignore').strip()
-        if linha != esperado:
-            raise RuntimeError(f'Esperava "{esperado}" da ponte, recebi "{linha}"')
+    def expect(expected):
+        line = serial_port.readline().decode('utf-8', errors='ignore').strip()
+        if line != expected:
+            raise RuntimeError(f'Esperava "{expected}" da ponte, recebi "{line}"')
 
     serial_port.write(f'OTA_MAC {mac_hex}\n'.encode('utf-8'))
-    esperar('OK_MAC')
+    expect('OK_MAC')
 
-    serial_port.write(f'OTA_SIZE {tamanho}\n'.encode('utf-8'))
-    esperar('OK_SIZE')
+    serial_port.write(f'OTA_SIZE {size}\n'.encode('utf-8'))
+    expect('OK_SIZE')
 
-    enviados = 0
-    while enviados < tamanho:
-        pedaco = dados[enviados:enviados + TAMANHO_CHUNK]
+    sent = 0
+    while sent < size:
+        chunk = data[sent:sent + CHUNK_SIZE]
 
-        for tentativa in range(3):
-            serial_port.write(pedaco)
+        for attempt in range(3):
+            serial_port.write(chunk)
             serial_port.flush()
-            linha = serial_port.readline().decode('utf-8', errors='ignore').strip()
+            line = serial_port.readline().decode('utf-8', errors='ignore').strip()
 
-            if linha == 'OK_CHUNK':
+            if line == 'OK_CHUNK':
                 break
 
-            if linha == 'ERRO_CHUNK_NAO_CONFIRMADO':
+            if line == 'ERRO_CHUNK_NAO_CONFIRMADO':
                 continue
 
-            raise RuntimeError(f'Esperava "OK_CHUNK" da ponte, recebi "{linha}"')
+            raise RuntimeError(f'Esperava "OK_CHUNK" da ponte, recebi "{line}"')
         else:
-            raise RuntimeError(f'Chunk em {enviados} bytes falhou 3 vezes seguidas - abortando.')
+            raise RuntimeError(f'Chunk em {sent} bytes falhou 3 vezes seguidas - abortando.')
 
-        enviados += len(pedaco)
-        click.echo(f'\r{enviados}/{tamanho} bytes', nl=False)
+        sent += len(chunk)
+        click.echo(f'\r{sent}/{size} bytes', nl=False)
 
     click.echo()
     serial_port.write(b'OTA_END\n')
 
     click.echo('Aguardando confirmacao da ponte/equipamento...')
-    inicio = time.time()
-    while time.time() - inicio < 30:
-        linha = serial_port.readline().decode('utf-8', errors='ignore').strip()
-        if linha:
-            click.echo(f'>> {linha}')
-        if linha.startswith('RESULTADO'):
+    start = time.time()
+    while time.time() - start < 30:
+        line = serial_port.readline().decode('utf-8', errors='ignore').strip()
+        if line:
+            click.echo(f'>> {line}')
+        if line.startswith('RESULTADO'):
             break
 
     serial_port.close()
@@ -167,8 +167,8 @@ def enviar_para_ponte(porta, mac_hex, caminho_bin):
 @click.option('--script', 'script_override', default=None,
               help='Nome do script a compilar/enviar (ex: equip_6_so_accel). '
                    'Se omitido, usa equip_<id> ou base_<id> conforme o padrao.')
-@click.option('--port', 'porta', required=True, help='Porta serial do ESP32-ponte, ex: COM7')
-def ota(id, base_id, tdma, script_override, porta):
+@click.option('--port', required=True, help='Porta serial do ESP32-ponte, ex: COM7')
+def ota(id, base_id, tdma, script_override, port):
     if tdma:
         if not TDMA_MAC:
             click.echo('TDMA_MAC nao configurado no topo do ota.py - preencha com o MAC do ESP32 do TDMA.')
@@ -176,17 +176,17 @@ def ota(id, base_id, tdma, script_override, porta):
         mac = TDMA_MAC
         script_name = TDMA_SCRIPT_NAME
     elif base_id:
-        mac = obter_mac_base(base_id)
+        mac = get_base_mac(base_id)
         if not mac:
             return
         script_name = f'base_{base_id}'
     else:
         if not id:
-            click.echo('Uso: contato ota --id <id> --port <porta>   ou   '
-                        'contato ota --base <id> --port <porta>   ou   '
-                        'contato ota --tdma --port <porta>')
+            click.echo('Uso: contato ota --id <id> --port <port>   ou   '
+                        'contato ota --base <id> --port <port>   ou   '
+                        'contato ota --tdma --port <port>')
             return
-        mac = obter_mac(id)
+        mac = get_mac(id)
         if not mac:
             return
         script_name = f'equip_{id}'
@@ -195,11 +195,11 @@ def ota(id, base_id, tdma, script_override, porta):
         script_name = script_override
 
     try:
-        caminho_bin = compilar(script_name)
-        if not caminho_bin:
+        bin_path = build_firmware(script_name)
+        if not bin_path:
             return
 
-        enviar_para_ponte(porta, mac, caminho_bin)
+        send_to_bridge(port, mac, bin_path)
     finally:
         main_cpp = os.path.join(PLATFORMIO_PROJECT_DIR, 'src', 'main.cpp')
         open(main_cpp, 'w').close()

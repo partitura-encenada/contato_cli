@@ -30,7 +30,7 @@ def hard_reset_esp32(serial_port):
         click.echo(f'Aviso: reset RTS/DTR falhou: {type(e).__name__}')
         return False
 
-def iniciar_base(serial_port):
+def start_base(serial_port):
     hard_reset_esp32(serial_port)
 
     for _ in range(3):
@@ -48,24 +48,24 @@ cli.add_command(update_bases)
 cli.add_command(monitor)
 
 @cli.command(name='scan-com')
-@click.option('--timeout', 'tempo', default=1)
-async def scan_com(tempo):
-    mapa = {}
+@click.option('--timeout', default=1)
+async def scan_com(timeout):
+    mapping = {}
 
-    for porta in list_ports.comports():
+    for port in list_ports.comports():
 
-        descricao = (porta.description or '').lower()
-        hwid = (porta.hwid or '').lower()
+        description = (port.description or '').lower()
+        hwid = (port.hwid or '').lower()
 
-        if 'bluetooth' in descricao or 'bth' in hwid:
+        if 'bluetooth' in description or 'bth' in hwid:
             continue
 
-        click.echo(f'Testando {porta.device}...')
+        click.echo(f'Testando {port.device}...')
         serial_port = None
 
         try:
             serial_port = serial.Serial(
-                port=porta.device,
+                port=port.device,
                 baudrate=115200,
                 timeout=0.1,
                 write_timeout=0.2,
@@ -79,39 +79,39 @@ async def scan_com(tempo):
                 serial_port.flush()
                 time.sleep(0.1)
 
-            inicio = time.time()
+            start = time.time()
 
-            while time.time() - inicio < tempo:
-                linha = serial_port.readline().decode(
+            while time.time() - start < timeout:
+                line = serial_port.readline().decode(
                     'utf-8',
                     errors='ignore'
                 ).strip()
 
-                if not linha:
+                if not line:
                     continue
 
-                partes = linha.split('/')
+                parts = line.split('/')
 
-                if len(partes) == 2 and partes[0] == 'ID':
+                if len(parts) == 2 and parts[0] == 'ID':
                     try:
-                        id_lido = int(partes[1].strip())
+                        read_id = int(parts[1].strip())
 
-                        mapa[str(id_lido)] = porta.device.replace('COM', '')
+                        mapping[str(read_id)] = port.device.replace('COM', '')
 
-                        click.echo(f'ID {id_lido} encontrado em {porta.device}')
+                        click.echo(f'ID {read_id} encontrado em {port.device}')
 
                         break
 
                     except ValueError:
                         continue
 
-                elif len(partes) >= 4:
+                elif len(parts) >= 4:
                     try:
-                        id_lido = int(partes[0].strip())
+                        read_id = int(parts[0].strip())
 
-                        mapa[str(id_lido)] = porta.device.replace('COM', '')
+                        mapping[str(read_id)] = port.device.replace('COM', '')
 
-                        click.echo(f'ID {id_lido} encontrado em {porta.device}')
+                        click.echo(f'ID {read_id} encontrado em {port.device}')
 
                         break
 
@@ -120,7 +120,7 @@ async def scan_com(tempo):
 
 
         except Exception as e:
-            click.echo(f'Ignorando {porta.device}: {type(e).__name__}')
+            click.echo(f'Ignorando {port.device}: {type(e).__name__}')
 
         finally:
             if serial_port and serial_port.is_open:
@@ -128,7 +128,7 @@ async def scan_com(tempo):
 
     with open(COM_CONTATO_DICT_FILE, 'w', encoding='utf-8') as f:
         f.write('com_contato_dict = ')
-        f.write(repr(mapa))
+        f.write(repr(mapping))
         f.write('\n')
 
     click.echo(f'Arquivo atualizado: {COM_CONTATO_DICT_FILE}')
@@ -154,12 +154,12 @@ async def scan_mac(id):
     serial_port.reset_input_buffer()
     serial_port.write(b'DISCOVER\n')
 
-    inicio = time.time()
+    start = time.time()
 
-    while time.time() - inicio < 10:
-        linha = serial_port.readline().decode('utf-8', errors='ignore').strip()
+    while time.time() - start < 10:
+        line = serial_port.readline().decode('utf-8', errors='ignore').strip()
 
-        if linha == 'MAC_SAVED':
+        if line == 'MAC_SAVED':
             click.echo(f'MAC salvo na base {id}')
             break
 
@@ -194,7 +194,7 @@ async def connect(performance, id, com, daw) -> None:
             stopbits=serial.STOPBITS_ONE
         )
 
-        iniciar_base(serial_port)
+        start_base(serial_port)
 
         try:
             while True:
@@ -202,8 +202,8 @@ async def connect(performance, id, com, daw) -> None:
                     serial_string = serial_port.readline()
 
                     try:
-                        linha = serial_string.decode('utf-8', errors='ignore').strip()
-                        sensor_data_list = linha.split('/')
+                        line = serial_string.decode('utf-8', errors='ignore').strip()
+                        sensor_data_list = line.split('/')
 
                         if len(sensor_data_list) < 4:
                             continue

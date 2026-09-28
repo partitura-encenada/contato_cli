@@ -152,13 +152,13 @@ class Player:
         self.accel = accel
 
         if self.config.get('modo_gate', False):
-            limite = (
+            limit = (
                 self.accel > self.config.get('accel_sensitivity_+')
                 or
                 self.accel < -self.config.get('accel_sensitivity_-')
             )
 
-            if not limite:
+            if not limit:
                 if not self.accel_flag:
                     self.play_notes(
                         'accel',
