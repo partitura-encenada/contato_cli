@@ -11,6 +11,7 @@ from contato_cli.player import Player
 from contato_cli.over_the_air import ota
 from contato_cli.calibrate import calibrate
 from contato_cli.update_bases import update_bases
+from contato_cli.monitor import monitor
 
 COM_CONTATO_DICT_FILE = Path(__file__).parent / 'com_contato_dict.py'
 
@@ -44,6 +45,7 @@ def cli() -> None:
 cli.add_command(ota)
 cli.add_command(calibrate)
 cli.add_command(update_bases)
+cli.add_command(monitor)
 
 @cli.command(name='scan-com')
 @click.option('--tempo', default=1)
