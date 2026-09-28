@@ -48,7 +48,7 @@ cli.add_command(update_bases)
 cli.add_command(monitor)
 
 @cli.command(name='scan-com')
-@click.option('--tempo', default=1)
+@click.option('--timeout', 'tempo', default=1)
 async def scan_com(tempo):
     mapa = {}
 
