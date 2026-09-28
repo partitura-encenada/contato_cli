@@ -167,7 +167,7 @@ def enviar_para_ponte(porta, mac_hex, caminho_bin):
 @click.option('--script', 'script_override', default=None,
               help='Nome do script a compilar/enviar (ex: equip_6_so_accel). '
                    'Se omitido, usa equip_<id> ou base_<id> conforme o padrao.')
-@click.option('--porta', required=True, help='Porta serial do ESP32-ponte, ex: COM7')
+@click.option('--port', 'porta', required=True, help='Porta serial do ESP32-ponte, ex: COM7')
 def ota(id, base_id, tdma, script_override, porta):
     if tdma:
         if not TDMA_MAC:
@@ -182,9 +182,9 @@ def ota(id, base_id, tdma, script_override, porta):
         script_name = f'base_{base_id}'
     else:
         if not id:
-            click.echo('Uso: contato ota --id <id> --porta <porta>   ou   '
-                        'contato ota --base <id> --porta <porta>   ou   '
-                        'contato ota --tdma --porta <porta>')
+            click.echo('Uso: contato ota --id <id> --port <porta>   ou   '
+                        'contato ota --base <id> --port <porta>   ou   '
+                        'contato ota --tdma --port <porta>')
             return
         mac = obter_mac(id)
         if not mac:

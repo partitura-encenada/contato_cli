@@ -169,7 +169,7 @@ def enviar_e_calibrar(porta, mac_hex, caminho_bin):
 
 @click.command()
 @click.option('--id', required=True, help='ID do equip a calibrar')
-@click.option('--porta', required=True, help='Porta serial do ESP32-ponte, ex: COM7')
+@click.option('--port', 'porta', required=True, help='Porta serial do ESP32-ponte, ex: COM7')
 def calibrate(id, porta):
     mac = obter_mac(id)
     if not mac:
