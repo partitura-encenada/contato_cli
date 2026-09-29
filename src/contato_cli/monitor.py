@@ -1,29 +1,3 @@
-"""
-monitor.py
-
-Comando `contato monitor` - grava em arquivo o que o monitor.cpp (ESP32 so
-escutando o canal ESP-NOW do Contato) mede do sinal.
-
-Passo a passo:
-    1. Procura o monitor: manda "ID?" nas portas seriais (menos as das bases,
-       tiradas do com_contato_dict.py) e espera "ID/MONITOR" ou uma linha de
-       dados do monitor.
-    2. Achou: cria logs_monitor/monitor_AAAAMMDD_HHMMSS.csv com um cabecalho
-       explicando as colunas.
-    3. Cada linha que chega do monitor e gravada no arquivo com o horario do PC
-       na frente, e tambem somada no Summary. A cada FIM_JANELA (1 s) o arquivo e
-       salvo em disco e uma linha de status aparece no terminal.
-    4. Quando o monitor e desligado/desconectado (a porta some) ou fica
-       NO_DATA_TIMEOUT_S sem mandar nada, o resumo com os indicadores e
-       escrito no fim do arquivo e o arquivo e fechado.
-    5. Volta ao passo 1: cada vez que o monitor e ligado gera um arquivo novo.
-       Ctrl+C encerra (fechando o log aberto, com resumo).
-
-Uso:
-    contato monitor
-    contato monitor --port COM7 --folder logs_monitor --quiet
-"""
-
 import time
 from datetime import datetime
 from pathlib import Path

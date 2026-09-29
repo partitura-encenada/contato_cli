@@ -12,6 +12,7 @@ from contato_cli.over_the_air import ota
 from contato_cli.calibrate import calibrate
 from contato_cli.update_bases import update_bases
 from contato_cli.monitor import monitor
+from contato_cli.diagnostic_6dof import diag_6dof
 
 COM_CONTATO_DICT_FILE = Path(__file__).parent / 'com_contato_dict.py'
 
@@ -46,6 +47,7 @@ cli.add_command(ota)
 cli.add_command(calibrate)
 cli.add_command(update_bases)
 cli.add_command(monitor)
+cli.add_command(diag_6dof)
 
 @cli.command(name='scan-com')
 @click.option('--timeout', default=1)
