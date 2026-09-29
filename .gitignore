@@ -1,1 +1,4 @@
 __pycache__/
+
+# Worktrees e arquivos locais do Claude Code.
+.claude/
