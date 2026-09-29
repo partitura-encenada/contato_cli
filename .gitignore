@@ -2,3 +2,6 @@ __pycache__/
 
 # Worktrees e arquivos locais do Claude Code.
 .claude/
+
+# Agenda ID -> porta COM gerada pelo scan-com (diferente em cada PC).
+src/contato_cli/com_contato_dict.py
