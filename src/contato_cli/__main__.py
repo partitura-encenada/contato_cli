@@ -135,6 +135,9 @@ async def scan_com(timeout):
 
     click.echo(f'Arquivo atualizado: {COM_CONTATO_DICT_FILE}')
 
+    found_ids = ', '.join(sorted(mapping, key=int))
+    click.echo(f'{len(mapping)} ID(s) encontrado(s)' + (f': {found_ids}' if mapping else '.'))
+
 
 @cli.command(name='scan-mac')
 @click.option('--id', required=True)

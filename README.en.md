@@ -103,7 +103,11 @@ Example:
 ```text
 ID 5 encontrado em COM8
 ID 6 encontrado em COM9
+Arquivo atualizado: ...\com_contato_dict.py
+2 ID(s) encontrado(s): 5, 6
 ```
+
+`com_contato_dict.py` stays on your computer only (it is not in git). If it does not exist, the CLI creates an empty one on start.
 
 Run this command when you:
 
