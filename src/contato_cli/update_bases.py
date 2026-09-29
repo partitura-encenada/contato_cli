@@ -1,21 +1,3 @@
-"""
-update_bases.py
-
-Comando `contato update-bases` - sobe o firmware base_<id>.cpp via USB
-em varias bases de uma vez, usando com_contato_dict.py (o mesmo
-arquivo que o scan-com gera) pra saber qual porta corresponde a qual
-ID, sem precisar digitar porta por porta na mao.
-
-ISOLAMENTO: so importa com_contato_dict.py, que ja e importado por
-__main__.py de qualquer forma - nao introduz acoplamento novo. Nao
-importa nem e importado por ota.py/calibrar.py.
-
-Uso:
-    contato update-bases --ids 3,4,5,6,7,8
-    contato update-bases --ids 3-8
-    contato update-bases --ids 3,5-8,10
-"""
-
 import os
 import subprocess
 
@@ -23,7 +5,7 @@ import asyncclick as click
 
 from contato_cli.com_contato_dict import com_contato_dict
 
-# ═════════ ALTERAR PARA O SEU AMBIENTE (mesmos valores de ota.py/calibrar.py) ═════════
+# ═════════ ALTERAR PARA O SEU AMBIENTE (mesmos valores de over_the_air.py/calibrate.py) ═════════
 PLATFORMIO_PROJECT_DIR = r'C:\Users\cbreder\contato_hardware\platformio'  # ALTERAR
 PLATFORMIO_ENV = 'esp32doit-devkit-v1'  # ALTERAR: nome do environment no platformio.ini
 
