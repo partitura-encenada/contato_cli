@@ -1,5 +1,5 @@
 {
-    "midi_channel" : 13,
+    "midi_channel" : 15,
     "legato" : false,
     "hand" : 1,
     "gyro_correction_-": 1.8,
@@ -11,7 +11,7 @@
         [180, [["D", 4]]]
     ],  
     "accel_notes":[["C", 3]],
-    "accel_delay": 2,                      
+    "accel_delay": 1,                      
     "accel_sensitivity_+": 13000,  
     "accel_sensitivity_-": 13000
 }
