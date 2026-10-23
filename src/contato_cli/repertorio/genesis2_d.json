@@ -3,8 +3,8 @@
     "legato" : false,
     "sustain" : true,
     "hand" : 1,
-    "gyro_correction_-": 1.8,
-    "gyro_correction_+": 2,
+    "gyro_correction_-": 2.25,
+    "gyro_correction_+": 2.25,
 
     "angle_notes_list": [
         [50, [["E", 5]]],        
