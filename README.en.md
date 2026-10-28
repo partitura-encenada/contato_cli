@@ -198,14 +198,17 @@ Calibrates an equip's MPU6050 over the air:
 
 1. Builds `util/calibrate.cpp` and flashes it to the equip through the bridge (like `ota`).
 2. The equip restarts in the calibration firmware. **Lay the equip flat and still, sensor facing up, and touch the touch sensor**: calibration only starts on touch. You have up to 60 s.
-3. In ~15–20 s the equip sends the offsets back through the bridge, and the command prints lines ready to paste into `equip_<id>.cpp`:
+3. In ~15–20 s the equip sends the offsets back through the bridge, and the command prints the values:
 
 ```text
     mpu.setXAccelOffset(-1996);
     ...
 ```
 
-4. Paste the values into `equip_<id>.cpp` and flash the normal firmware again (`contato ota --id <id> ...`). Until then the equip stays on the calibration firmware.
+4. **Automatically**, the command replaces the 6 offsets in `contato_hardware/platformio/scripts/equip_<id>.cpp` (showing old → new) and flashes the equip's normal firmware again through the bridge. If any of the 6 `mpu.set...Offset(...)` calls does not appear exactly once in the file, nothing is changed.
+5. If flashing fails, the offsets are already in the file: flash with `contato ota --id <id> ...`.
+
+With `--no-apply`, the command only prints the values (as before), without changing the file or flashing.
 
 Usage:
 
@@ -217,6 +220,7 @@ contato calibrate --id 3 --port COM7
 |---|---|
 | `--id` | Equip ID |
 | `--port` | Bridge serial port |
+| `--no-apply` | Only prints the offsets, without changing `equip_<id>.cpp` or flashing the normal firmware |
 
 ---
 

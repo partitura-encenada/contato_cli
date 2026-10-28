@@ -7,11 +7,22 @@ import serial
 import asyncclick as click
 
 from contato_cli.equip_mac_dict import equip_mac_dict
+from contato_cli.over_the_air import build_firmware as build_equip_firmware, send_to_bridge
 
 PLATFORMIO_PROJECT_DIR = r'C:\Users\cbreder\contato_hardware\platformio'
 PLATFORMIO_ENV = 'esp32doit-devkit-v1'
 CHUNK_SIZE = 230
 CALIBRATION_SCRIPT = 'calibrate'
+
+# chave da linha CALIBRACAO -> função do MPU6050 no equip_<id>.cpp
+OFFSET_FUNCTIONS = [
+    ('ax', 'setXAccelOffset'),
+    ('ay', 'setYAccelOffset'),
+    ('az', 'setZAccelOffset'),
+    ('gx', 'setXGyroOffset'),
+    ('gy', 'setYGyroOffset'),
+    ('gz', 'setZGyroOffset'),
+]
 
 
 def build_firmware(script_name):
@@ -52,23 +63,49 @@ def get_mac(id):
     return mac
 
 
-def print_offsets(calibration_line):
+def parse_offsets(calibration_line):
+    """Valores da linha CALIBRACAO; None se faltar algum dos 6."""
     values = dict(re.findall(r'(\w+)=(-?\d+)', calibration_line))
+    if any(key not in values for key, _ in OFFSET_FUNCTIONS):
+        click.echo(f'Linha de calibracao incompleta: {calibration_line}')
+        return None
+    return values
 
-    mapping = [
-        ('ax', 'setXAccelOffset'),
-        ('ay', 'setYAccelOffset'),
-        ('az', 'setZAccelOffset'),
-        ('gx', 'setXGyroOffset'),
-        ('gy', 'setYGyroOffset'),
-        ('gz', 'setZGyroOffset'),
-    ]
 
-    click.echo('\nOffsets calibrados - cole no equip_X.cpp:\n')
-    for key, function in mapping:
-        if key in values:
-            click.echo(f'    mpu.{function}({values[key]});')
+def print_offsets(values):
+    click.echo('\nOffsets calibrados:\n')
+    for key, function in OFFSET_FUNCTIONS:
+        click.echo(f'    mpu.{function}({values[key]});')
     click.echo()
+
+
+def apply_offsets(equip_id, values):
+    """Troca os 6 offsets no scripts/equip_<id>.cpp. Não altera nada se alguma chamada não aparecer exatamente 1 vez."""
+    path = os.path.join(PLATFORMIO_PROJECT_DIR, 'scripts', f'equip_{equip_id}.cpp')
+    if not os.path.isfile(path):
+        click.echo(f'Nao encontrei {path}. Nada foi alterado.')
+        return False
+
+    with open(path, encoding='utf-8', newline='') as f:
+        code = f.read()
+
+    changes = []
+    for key, function in OFFSET_FUNCTIONS:
+        pattern = rf'(mpu\.{function}\()\s*(-?\d+)\s*(\))'
+        found = re.findall(pattern, code)
+        if len(found) != 1:
+            click.echo(f'Esperava 1 chamada de {function} em {path}, achei {len(found)}. Nada foi alterado.')
+            return False
+        changes.append((function, found[0][1], values[key]))
+        code = re.sub(pattern, rf'\g<1>{values[key]}\g<3>', code)
+
+    with open(path, 'w', encoding='utf-8', newline='') as f:
+        f.write(code)
+
+    click.echo(f'Offsets atualizados em {path}:')
+    for function, old, new in changes:
+        click.echo(f'    {function}: {old} -> {new}')
+    return True
 
 
 def wait_bridge_ready(serial_port, timeout=15):
@@ -159,18 +196,31 @@ def send_and_calibrate(port, mac_hex, bin_path):
         if line:
             click.echo(f'>> {line}')
         if line.startswith('CALIBRACAO:'):
-            print_offsets(line)
             serial_port.close()
-            return
+            return parse_offsets(line)
 
     click.echo('Tempo esgotado esperando o resultado da calibracao.')
     serial_port.close()
+    return None
+
+
+def flash_equip(equip_id, port, mac):
+    """Grava o equip_<id> normal (já com os offsets novos) pelo rádio, como o contato ota."""
+    click.echo(f'\nGravando equip_{equip_id} com a calibracao nova...')
+    try:
+        bin_path = build_equip_firmware(f'equip_{equip_id}')
+        return bool(bin_path) and send_to_bridge(port, mac, bin_path)
+    finally:
+        open(os.path.join(PLATFORMIO_PROJECT_DIR, 'src', 'main.cpp'), 'w').close()
 
 
 @click.command()
 @click.option('--id', required=True, help='ID do equip a calibrar')
 @click.option('--port', required=True, help='Porta serial do ESP32-ponte, ex: COM7')
-def calibrate(id, port):
+@click.option('--no-apply', is_flag=True,
+              help='So mostra os offsets, sem alterar o equip_<id>.cpp nem gravar o firmware normal de novo.')
+def calibrate(id, port, no_apply):
+    """Calibra o MPU6050 do equip, grava os offsets no equip_<id>.cpp e regrava o firmware normal."""
     mac = get_mac(id)
     if not mac:
         return
@@ -179,4 +229,20 @@ def calibrate(id, port):
     if not bin_path:
         return
 
-    send_and_calibrate(port, mac, bin_path)
+    values = send_and_calibrate(port, mac, bin_path)
+    if not values:
+        return
+    print_offsets(values)
+
+    if no_apply:
+        click.echo(f'(--no-apply) Cole os valores no equip_{id}.cpp e grave com: contato ota --id {id} --port {port}')
+        return
+
+    if not apply_offsets(id, values):
+        return
+
+    if flash_equip(id, port, mac):
+        click.echo(f'\nPronto: equip {id} calibrado e com o firmware normal gravado.')
+    else:
+        click.echo(f'\nOs offsets ja estao no equip_{id}.cpp, mas a gravacao falhou. '
+                   f'Tente de novo com: contato ota --id {id} --port {port}')
