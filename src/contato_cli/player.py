@@ -45,6 +45,9 @@ class Player:
         self.sustain_gyro_notes_played_list = []
         self.current_gyro_channel = self.config.get('midi_channel')
         self.last_gyro_channel = self.config.get('midi_channel')
+        self.gyro_zone = None          # faixa da angle_notes_list em uso
+        self.pending_zone = None       # faixa nova esperando completar note_min_ms
+        self.pending_since = 0.0
         self.last_accel_trigger_time = 0
         self.last_accel_x_trigger_time = 0
         self.last_accel_y_trigger_time = 0
@@ -134,12 +137,13 @@ class Player:
 
         self.gyro = round(self.gyro)
 
-        for i, notes in enumerate(self.config.get('angle_notes_list')):
-            notes_list = notes[1]
+        angle_notes_list = self.config.get('angle_notes_list')
+        for i, notes in enumerate(angle_notes_list):
             if self.gyro <= notes[0]:
                 break
 
-        self.current_gyro_notes = self.convert_to_midi_codes(notes_list)
+        i = self.filter_zone(i, [notes[0] for notes in angle_notes_list])
+        self.current_gyro_notes = self.convert_to_midi_codes(angle_notes_list[i][1])
 
         if self.config.get('gyro_multi_channel', False):
             gyro_channels = self.config.get('gyro_channels', [])
@@ -147,6 +151,37 @@ class Player:
                 self.current_gyro_channel = gyro_channels[i]
             else:
                 self.current_gyro_channel = self.config.get('midi_channel')
+
+    def filter_zone(self, candidate, limits) -> int:
+        """Aplica angle_hysteresis e note_min_ms à faixa do ângulo; sem eles, devolve a faixa direto."""
+        margin = self.config.get('angle_hysteresis', 0)
+        min_ms = self.config.get('note_min_ms', 0)
+
+        if self.gyro_zone is None:
+            self.gyro_zone = candidate
+            return candidate
+
+        # margem: para sair da faixa atual, a mão precisa passar da divisa mais a margem
+        current = self.gyro_zone
+        if margin and candidate > current and self.gyro <= limits[current] + margin:
+            candidate = current
+        elif margin and candidate < current and self.gyro > limits[current - 1] - margin:
+            candidate = current
+
+        if candidate == current or not min_ms:
+            self.gyro_zone = candidate
+            self.pending_zone = None
+            return candidate
+
+        # tempo mínimo: a faixa nova só vale se a mão ficar nela por note_min_ms
+        now = time.monotonic()
+        if candidate != self.pending_zone:
+            self.pending_zone = candidate
+            self.pending_since = now
+        elif (now - self.pending_since) * 1000 >= min_ms:
+            self.gyro_zone = candidate
+            self.pending_zone = None
+        return self.gyro_zone
 
     def set_accel(self, accel) -> None:
         self.accel = accel
@@ -251,6 +286,10 @@ class Player:
                     self.sustain_gyro_notes_played_list += self.current_gyro_notes
                 else:
                     self.stop_notes('gyro', self.last_gyro_notes_played_list)
+                    # pausa entre soltar e tocar: alguns instrumentos (ex.: BBC SO) ignoram a nota nova se vier colada
+                    gap_ms = self.config.get('note_change_gap_ms', 0)
+                    if gap_ms:
+                        time.sleep(gap_ms / 1000)
                     self.play_notes('gyro', self.current_gyro_notes)
         else:
             if self.touch_flag:

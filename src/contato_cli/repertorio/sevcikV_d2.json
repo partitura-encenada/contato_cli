@@ -1,6 +1,8 @@
 {
     "midi_channel" : 4,
     "legato" : false,
+    "note_change_gap_ms": 30,
+    "angle_hysteresis": 10,
     "hand" : -1,
     "gyro_correction_-": 2.25,
     "gyro_correction_+": 2.25,

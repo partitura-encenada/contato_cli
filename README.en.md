@@ -414,6 +414,48 @@ New note → stops previous note
 
 ---
 
+### angle_hysteresis
+
+Margin on the `angle_notes_list` boundaries (optional; default `0`, no margin). To **leave** the current note, the hand must cross the boundary **plus** this margin, on the same scale as the limits.
+
+Example:
+
+```json
+"angle_hysteresis": 10
+```
+
+With margin `10` and a boundary at `-64`, the note only changes once the value goes past `-74`. It stops the note from "flickering" when the hand rests on a boundary, and a small overshoot from playing the neighbouring note. It adds no delay, but needs a slightly larger movement to change notes.
+
+---
+
+### note_min_ms
+
+Minimum time, in milliseconds, the hand must stay in a new zone for the note to change (optional; default `0`, changes immediately).
+
+Example:
+
+```json
+"note_min_ms": 25
+```
+
+If the hand enters a zone and leaves before this time, that zone's note is discarded. It removes quick passes through the neighbouring note (e.g. going down from C to B and hearing a short A in between). Cost: **every** note change happens this much later; use small values (20 to 40).
+
+---
+
+### note_change_gap_ms
+
+Pause, in milliseconds, between **releasing the old note** and **playing the new one** when the note changes **while touch is held** (optional; default `0`, no pause).
+
+Example:
+
+```json
+"note_change_gap_ms": 30
+```
+
+Use it when, holding touch and moving the hand, the sound **stays on the old note** and only changes after touching again. Some instruments (such as BBC Symphony Orchestra) ignore the new note if it arrives right at the end of the previous one; the pause mimics lifting the finger. Values between 10 and 50 are usually enough: higher is safer, but leaves more silence between notes.
+
+---
+
 ### modo_gate
 
 Enables continuous accelerometer-based behavior.
