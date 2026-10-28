@@ -110,7 +110,7 @@ def send_to_bridge(port, mac_hex, bin_path):
         click.echo('A ponte nao avisou que estava pronta a tempo. '
                     'Confira se ela esta rodando ponte.cpp e na porta certa.')
         serial_port.close()
-        return
+        return False
 
     def expect(expected):
         line = serial_port.readline().decode('utf-8', errors='ignore').strip()
@@ -149,15 +149,18 @@ def send_to_bridge(port, mac_hex, bin_path):
     serial_port.write(b'OTA_END\n')
 
     click.echo('Aguardando confirmacao da ponte/equipamento...')
+    flash_ok = False
     start = time.time()
     while time.time() - start < 30:
         line = serial_port.readline().decode('utf-8', errors='ignore').strip()
         if line:
             click.echo(f'>> {line}')
         if line.startswith('RESULTADO'):
+            flash_ok = 'SUCESSO' in line
             break
 
     serial_port.close()
+    return flash_ok
 
 
 @click.command()

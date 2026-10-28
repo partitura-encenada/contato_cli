@@ -198,14 +198,17 @@ Calibra o MPU6050 de um equip pelo rádio:
 
 1. Compila o `util/calibrate.cpp` e grava no equip pela ponte (como o `ota`).
 2. O equip reinicia no firmware de calibração. **Deixe o equip deitado, parado, com o sensor virado para cima, e toque no sensor de toque**: a calibração só começa com o toque. Você tem até 60 s.
-3. Em ~15–20 s o equip devolve os offsets pela ponte, e o comando mostra as linhas prontas para colar no `equip_<id>.cpp`:
+3. Em ~15–20 s o equip devolve os offsets pela ponte, e o comando mostra os valores:
 
 ```text
     mpu.setXAccelOffset(-1996);
     ...
 ```
 
-4. Cole os valores no `equip_<id>.cpp` e grave o firmware normal de novo (`contato ota --id <id> ...`). Até lá o equip fica no firmware de calibração.
+4. **Sozinho**, o comando troca os 6 offsets no `contato_hardware/platformio/scripts/equip_<id>.cpp` (mostrando o valor antigo → novo) e grava de novo o firmware normal do equip pela ponte. Se alguma das 6 chamadas `mpu.set...Offset(...)` não aparecer exatamente uma vez no arquivo, nada é alterado.
+5. Se a gravação falhar, os offsets já ficam no arquivo: grave com `contato ota --id <id> ...`.
+
+Com `--no-apply`, o comando só mostra os valores (como antes), sem alterar o arquivo nem gravar.
 
 Uso:
 
@@ -217,6 +220,7 @@ contato calibrate --id 3 --port COM7
 |---|---|
 | `--id` | ID do equip |
 | `--port` | Porta serial da ponte |
+| `--no-apply` | Só mostra os offsets, sem alterar o `equip_<id>.cpp` nem gravar o firmware normal |
 
 ---
 
