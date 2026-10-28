@@ -414,6 +414,48 @@ Nova nota → interrompe a nota anterior
 
 ---
 
+### angle_hysteresis
+
+Margem nas divisas da `angle_notes_list` (opcional; padrão `0`, sem margem). Para **sair** da nota atual, a mão precisa passar da divisa **mais** essa margem, na mesma escala dos limites.
+
+Exemplo:
+
+```json
+"angle_hysteresis": 10
+```
+
+Com margem `10` e divisa em `-64`, a nota só troca quando o valor passa de `-74`. Evita que a nota "pisque" quando a mão para em cima de uma divisa, e que uma pequena passada do ponto toque a nota vizinha. Não atrasa as notas, mas exige um movimento um pouco maior para trocar.
+
+---
+
+### note_min_ms
+
+Tempo mínimo, em milissegundos, que a mão precisa ficar numa faixa nova para a nota trocar (opcional; padrão `0`, troca na hora).
+
+Exemplo:
+
+```json
+"note_min_ms": 25
+```
+
+Se a mão entrar numa faixa e sair antes desse tempo, a nota daquela faixa é descartada. Elimina as passadas rápidas pela nota vizinha (ex.: descer do Dó para o Si e soar um Lá curtinho no meio). Custo: **toda** troca de nota sai esse tempo mais tarde; use valores pequenos (20 a 40).
+
+---
+
+### note_change_gap_ms
+
+Pausa, em milissegundos, entre **soltar a nota antiga** e **tocar a nova** quando a nota muda **com o toque segurado** (opcional; padrão `0`, sem pausa).
+
+Exemplo:
+
+```json
+"note_change_gap_ms": 30
+```
+
+Use quando, ao segurar o toque e mudar a mão, o som **fica na nota antiga** e só troca tocando de novo. Alguns instrumentos (como o BBC Symphony Orchestra) ignoram a nota nova se ela chega colada ao fim da anterior; a pausa imita o "tirar o dedo". Valores entre 10 e 50 costumam bastar: quanto maior, mais segura a troca, mas maior o silêncio entre as notas.
+
+---
+
 ### modo_gate
 
 Ativa o comportamento contínuo baseado no acelerômetro.
