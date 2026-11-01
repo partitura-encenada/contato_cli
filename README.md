@@ -1,6 +1,6 @@
 # Contato CLI
 
-[![en](https://img.shields.io/badge/lang-en-red.svg)](README.en.md)
+[![Read in English](https://img.shields.io/badge/read%20in-English-red.svg)](README.en.md)
 
 CLI para comunicação com o sistema **Contato**, desenvolvido na Universidade Federal do Rio de Janeiro (UFRJ) em parceria com o Parque Tecnológico da UFRJ 🎶🖥️
 
