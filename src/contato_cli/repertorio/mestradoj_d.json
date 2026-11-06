@@ -1,0 +1,21 @@
+{
+    "midi_channel": 2,
+    "legato" : false,
+    "hand" : -1,
+    "gyro_correction_-": 2.25,
+    "gyro_correction_+": 2.25,
+
+    "angle_notes_list": [
+        [-65, [["F#", 3]]],
+        [-39, [["A#", 4]]],
+        [-13, [["C#", 5]]],
+        [13, [["F", 5]]],
+        [39, [["A", 5]]],
+        [65, [["C", 6]]],
+        [180, [["D", 6]]]
+    ],  
+    "accel_notes":[["C", 5]],
+    "accel_delay": 1,                      
+    "accel_sensitivity_+": 12000,  
+    "accel_sensitivity_-": 12000
+}
