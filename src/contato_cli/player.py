@@ -3,6 +3,8 @@ import json
 import rtmidi
 import time
 
+from contato_cli.note_color import set_terminal_color, reset_terminal_color
+
 class Player:
     def __init__(self, performance, daw = False):
         with open(os.path.dirname(os.path.abspath(__file__))+ '/repertorio/' + performance + '.json') as jsonfile:
@@ -41,12 +43,13 @@ class Player:
         self.pianissimo_flag = False
 
         self.current_gyro_notes = []
+        self.current_gyro_notes_raw = []  # mesma lista, mas antes de virar código MIDI 
         self.last_gyro_notes_played_list = []
         self.sustain_gyro_notes_played_list = []
         self.current_gyro_channel = self.config.get('midi_channel')
         self.last_gyro_channel = self.config.get('midi_channel')
         self.gyro_zone = None          # faixa da angle_notes_list em uso
-        self.pending_zone = None       # faixa nova esperando completar note_min_ms
+        self.pending_zone = None       
         self.pending_since = 0.0
         self.last_accel_trigger_time = 0
         self.last_accel_x_trigger_time = 0
@@ -143,6 +146,7 @@ class Player:
                 break
 
         i = self.filter_zone(i, [notes[0] for notes in angle_notes_list])
+        self.current_gyro_notes_raw = angle_notes_list[i][1]
         self.current_gyro_notes = self.convert_to_midi_codes(angle_notes_list[i][1])
 
         if self.config.get('gyro_multi_channel', False):
@@ -199,6 +203,7 @@ class Player:
                         'accel',
                         self.convert_to_midi_codes(self.config.get('accel_notes'))
                     )
+                    set_terminal_color(self.config.get('accel_notes'))
                     self.accel_flag = True
 
             elif self.accel_flag:
@@ -206,6 +211,7 @@ class Player:
                     'accel',
                     self.convert_to_midi_codes(self.config.get('accel_notes'))
                 )
+                reset_terminal_color()
                 self.accel_flag = False
 
         else:
@@ -214,10 +220,12 @@ class Player:
                     if self.config.get('legato'):
                         self.stop_notes('gyro', self.last_gyro_notes_played_list)
                     self.play_notes('accel', self.convert_to_midi_codes(self.config.get('accel_notes')))
+                    set_terminal_color(self.config.get('accel_notes'))
                     self.last_accel_trigger_time = time.time()
                     self.accel_flag = True
                 elif self.accel_flag:
                     self.stop_notes('accel', self.convert_to_midi_codes(self.config.get('accel_notes')))
+                    reset_terminal_color()
                     self.accel_flag = False
 
     def set_accel_x(self, accel) -> None:
@@ -228,10 +236,12 @@ class Player:
                 if self.config.get('legato'):
                     self.stop_notes('gyro', self.last_gyro_notes_played_list)
                 self.play_notes('accel_x', self.convert_to_midi_codes(self.config.get('accel_x_notes')))
+                set_terminal_color(self.config.get('accel_x_notes'))
                 self.last_accel_x_trigger_time = time.time()
                 self.accel_x_flag = True
             elif self.accel_x_flag:
                 self.stop_notes('accel_x', self.convert_to_midi_codes(self.config.get('accel_x_notes')))
+                reset_terminal_color()
                 self.accel_x_flag = False
 
     def set_accel_y(self, accel) -> None:
@@ -242,10 +252,12 @@ class Player:
                 if self.config.get('legato'):
                     self.stop_notes('gyro', self.last_gyro_notes_played_list)
                 self.play_notes('accel_y', self.convert_to_midi_codes(self.config.get('accel_y_notes')))
+                set_terminal_color(self.config.get('accel_y_notes'))
                 self.last_accel_y_trigger_time = time.time()
                 self.accel_y_flag = True
             elif self.accel_y_flag:
                 self.stop_notes('accel_y', self.convert_to_midi_codes(self.config.get('accel_y_notes')))
+                reset_terminal_color()
                 self.accel_y_flag = False
 
     def set_accel_z(self, accel) -> None:
@@ -256,10 +268,12 @@ class Player:
                 if self.config.get('legato'):
                     self.stop_notes('gyro', self.last_gyro_notes_played_list)
                 self.play_notes('accel_z', self.convert_to_midi_codes(self.config.get('accel_z_notes')))
+                set_terminal_color(self.config.get('accel_z_notes'))
                 self.last_accel_z_trigger_time = time.time()
                 self.accel_z_flag = True
             elif self.accel_z_flag:
                 self.stop_notes('accel_z', self.convert_to_midi_codes(self.config.get('accel_z_notes')))
+                reset_terminal_color()
                 self.accel_z_flag = False
 
     def set_touch(self, touch) -> None:
@@ -268,6 +282,7 @@ class Player:
             if not self.touch_flag:
                 if self.config.get('legato'):
                     self.stop_notes('gyro', self.last_gyro_notes_played_list)
+                    reset_terminal_color()
 
                 if self.touch == 2:
                     self.pianissimo_flag = True
@@ -275,6 +290,7 @@ class Player:
                     self.pianissimo_flag = False
 
                 self.play_notes('gyro', self.current_gyro_notes)
+                set_terminal_color(self.current_gyro_notes_raw)
 
                 if self.config.get('sustain'):
                     self.sustain_gyro_notes_played_list += self.current_gyro_notes
@@ -283,14 +299,17 @@ class Player:
             if self.current_gyro_notes != self.last_gyro_notes_played_list:
                 if self.config.get('sustain'):
                     self.play_notes('gyro', self.current_gyro_notes)
+                    set_terminal_color(self.current_gyro_notes_raw)
                     self.sustain_gyro_notes_played_list += self.current_gyro_notes
                 else:
                     self.stop_notes('gyro', self.last_gyro_notes_played_list)
+                    reset_terminal_color()
                     # pausa entre soltar e tocar: alguns instrumentos (ex.: BBC SO) ignoram a nota nova se vier colada
                     gap_ms = self.config.get('note_change_gap_ms', 0)
                     if gap_ms:
                         time.sleep(gap_ms / 1000)
                     self.play_notes('gyro', self.current_gyro_notes)
+                    set_terminal_color(self.current_gyro_notes_raw)
         else:
             if self.touch_flag:
 
@@ -299,6 +318,7 @@ class Player:
                         'gyro',
                         list(set(self.sustain_gyro_notes_played_list))
                     )
+                    reset_terminal_color()
 
                     self.sustain_gyro_notes_played_list = []
 
@@ -307,6 +327,7 @@ class Player:
                         'gyro',
                         self.last_gyro_notes_played_list
                     )
+                    reset_terminal_color()
 
                 self.touch_flag = False
 
