@@ -1,7 +1,7 @@
 {
     "midi_channel" : 9,
     "legato" : false,
-    "hand" : -1,
+    "hand" : 1,
     "gyro_correction_-": 2.25,
     "gyro_correction_+": 2.25,
 
